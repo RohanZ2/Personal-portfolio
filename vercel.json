@@ -1,5 +1,5 @@
 {
   "buildCommand": "next build",
-  "outputDirectory": ".next/static",
+  "outputDirectory": ".next",
   "framework": "nextjs"
 }
