@@ -46,7 +46,6 @@ export default function ConsoleLayout() {
     }
   }, [activeProject, activeTab]);
 
-  // Handle manual navigation and ensure page dial is sync'd
   const handleNavigateTab = (tab: string) => {
     setActiveTab(tab);
   };
@@ -58,42 +57,27 @@ export default function ConsoleLayout() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#070709] flex items-center justify-center p-4 md:p-6 overflow-hidden">
-      {/* Outer physical console casing with hardware bevel, metallic hex screws, and labels */}
-      <div className="w-full max-w-6xl bg-[#0d0d0f] border-[6px] border-[#1d1d23] rounded-2xl p-4 md:p-6 shadow-2xl relative flex flex-col justify-between space-y-6 select-none border-double">
+    <div className="min-h-screen w-full pixel-bg flex flex-col justify-between p-4 md:p-8 overflow-x-hidden font-pixel text-zinc-300">
+      
+      {/* Header bar */}
+      <div className="flex justify-between items-center w-full pb-4">
+        <div className="flex items-center gap-4">
+          <span className="text-[12px] md:text-[16px] text-primary tracking-widest uppercase pixel-border p-2 bg-[#0d0d12]">PRTF-V3.SKY // PIXEL DECK</span>
+          <div className="flex gap-2">
+            <span className={`w-3 h-3 ${isPowered ? 'bg-primary shadow-led-orange animate-pulse' : 'bg-zinc-800'}`}></span>
+            <span className={`w-3 h-3 ${isPowered ? 'bg-secondary shadow-led-amber animate-pulse' : 'bg-zinc-800'}`}></span>
+          </div>
+        </div>
+        <div className="text-[10px] md:text-[12px] text-zinc-500 tracking-wider hidden md:block">
+          8-BIT ANALOG FILTERED // STEREO UPLINK [OK]
+        </div>
+      </div>
+
+      {/* Spaced-out Main Layout */}
+      <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center justify-items-center">
         
-        {/* Physical hardware details: metallic corner screws */}
-        <div className="absolute top-2 left-2 w-3.5 h-3.5 rounded-full bg-zinc-700 border border-zinc-900 shadow flex items-center justify-center">
-          <div className="w-1.5 h-0.5 bg-zinc-900 transform rotate-45"></div>
-        </div>
-        <div className="absolute top-2 right-2 w-3.5 h-3.5 rounded-full bg-zinc-700 border border-zinc-900 shadow flex items-center justify-center">
-          <div className="w-1.5 h-0.5 bg-zinc-900 transform -rotate-45"></div>
-        </div>
-        <div className="absolute bottom-2 left-2 w-3.5 h-3.5 rounded-full bg-zinc-700 border border-zinc-900 shadow flex items-center justify-center">
-          <div className="w-1.5 h-0.5 bg-zinc-900 transform -rotate-45"></div>
-        </div>
-        <div className="absolute bottom-2 right-2 w-3.5 h-3.5 rounded-full bg-zinc-700 border border-zinc-900 shadow flex items-center justify-center">
-          <div className="w-1.5 h-0.5 bg-zinc-900 transform rotate-45"></div>
-        </div>
-
-        {/* Deck Branding / Tech Decals */}
-        <div className="flex justify-between items-center w-full border-b border-[#22222a] pb-3 px-1">
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] font-orbitron font-black text-primary tracking-widest uppercase">PRTF-V3.SKY // CONSOLE DECK</span>
-            <div className="flex gap-1">
-              <span className={`w-1.5 h-1.5 rounded-full ${isPowered ? 'bg-primary shadow-led-orange animate-pulse' : 'bg-zinc-800'}`}></span>
-              <span className={`w-1.5 h-1.5 rounded-full ${isPowered ? 'bg-secondary shadow-led-amber animate-pulse' : 'bg-zinc-800'}`}></span>
-            </div>
-          </div>
-          <div className="text-[9px] font-tech text-zinc-500 tracking-wider">
-            ANALOG FILTERED // STEREO UPLINK [OK]
-          </div>
-        </div>
-
-        {/* Console layout elements - responsive grid */}
-        <div className="flex-1 flex flex-col lg:flex-row gap-6 items-stretch justify-center h-full">
-          
-          {/* Module 1: Controls (Left Panel) */}
+        {/* Module 1: Controls (Left Panel) - Spans 2 cols */}
+        <div className="w-full lg:col-span-2 h-full flex items-center justify-start max-w-[200px]">
           <ControlPanel
             isPowered={isPowered}
             setIsPowered={setIsPowered}
@@ -104,16 +88,20 @@ export default function ConsoleLayout() {
             rpmMode={rpmMode}
             setRpmMode={setRpmMode}
           />
+        </div>
 
-          {/* Module 2: Screen (Center Card) */}
+        {/* Module 2: Screen (Center Display) - Spans 5 cols */}
+        <div className="w-full lg:col-span-5 h-full flex items-center justify-center max-w-[600px]">
           <ScreenDisplay
             isPowered={isPowered}
             activeTab={activeTab}
             activeProject={activeProject}
             onNavigateTab={handleNavigateTab}
           />
+        </div>
 
-          {/* Module 3: Turntable (Right Panel) */}
+        {/* Module 3: Turntable (Right Panel) - Spans 5 cols */}
+        <div className="w-full lg:col-span-5 h-full flex items-center justify-end max-w-[700px]">
           <TurntableDeck
             isPowered={isPowered}
             activeProject={activeProject}
@@ -122,12 +110,12 @@ export default function ConsoleLayout() {
             rpmMode={rpmMode}
           />
         </div>
+      </div>
 
-        {/* Decal footer markings */}
-        <div className="flex justify-between items-center text-[8px] font-tech text-zinc-600 px-1 border-t border-[#22222a] pt-3">
-          <span>HIGH TEMPERATURE HAZARD // DISCONNECT VOLTAGE BEFORE SERVICING</span>
-          <span>SYSTEM CALIBRATION REF: PRTF-4096 // MADE BY ROHAN</span>
-        </div>
+      {/* Footer bar */}
+      <div className="flex justify-between items-center text-[10px] md:text-[12px] text-zinc-600 pt-4 w-full">
+        <span className="hidden md:inline">SYSTEM CALIBRATION REF: PRTF-4096 // MADE BY ROHAN</span>
+        <span>PRESS START TO CONTINUE</span>
       </div>
     </div>
   );

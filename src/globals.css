@@ -2,7 +2,7 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 * {
   @apply antialiased;
@@ -15,23 +15,56 @@ html, body {
   height: 100%;
   overflow: hidden;
   background-color: #060608;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Press Start 2P', cursive;
 }
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: #141416;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a2a30;
-  border-radius: 3px;
+  background: #ff5500;
+  border: 1px solid #000;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #ff5500;
+  background: #f59e0b;
+}
+
+/* Pixel Art Dithering/Texture Background */
+.pixel-bg {
+  background-image: radial-gradient(#1a1a24 20%, transparent 20%), radial-gradient(#1a1a24 20%, transparent 20%);
+  background-color: #0d0d12;
+  background-position: 0 0, 4px 4px;
+  background-size: 8px 8px;
+}
+
+/* 8-Bit Pixel Shadow Borders */
+.pixel-border {
+  border: 4px solid #000;
+  box-shadow: 
+    inset -4px -4px 0px 0px rgba(0,0,0,0.5),
+    inset 4px 4px 0px 0px rgba(255,255,255,0.2),
+    4px 4px 0px 0px rgba(0,0,0,1);
+}
+
+.pixel-btn {
+  border: 4px solid #000;
+  box-shadow: 
+    inset -4px -4px 0px 0px rgba(0,0,0,0.5),
+    inset 4px 4px 0px 0px rgba(255,255,255,0.2),
+    4px 4px 0px 0px rgba(0,0,0,1);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.pixel-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 
+    inset -4px -4px 0px 0px rgba(0,0,0,0.2),
+    inset 4px 4px 0px 0px rgba(0,0,0,0.4),
+    0px 0px 0px 0px rgba(0,0,0,1);
 }
 
 /* CRT Screen Effect */
@@ -39,14 +72,12 @@ html, body {
   position: relative;
   overflow: hidden;
 }
-
 .crt-screen {
   position: relative;
-  background: #121216;
-  border: 1px solid #2a2a32;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 85, 0, 0.05);
+  background: #08080c;
+  border: 4px solid #000;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 85, 0, 0.2);
 }
-
 .crt-screen::before {
   content: " ";
   display: block;
@@ -57,103 +88,35 @@ html, body {
   background-size: 100% 4px, 6px 100%;
   pointer-events: none;
 }
-
-/* Scanline animation */
 @keyframes scanline {
-  0% {
-    transform: translateY(-100%);
-  }
-  100% {
-    transform: translateY(100%);
-  }
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
 }
-
 .crt-scanline {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100px;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 85, 0, 0),
-    rgba(255, 85, 0, 0.04) 50%,
-    rgba(255, 85, 0, 0)
-  );
-  opacity: 0.8;
-  z-index: 11;
-  pointer-events: none;
+  top: 0; left: 0; width: 100%; height: 100px;
+  background: linear-gradient(to bottom, rgba(255, 85, 0, 0), rgba(255, 85, 0, 0.04) 50%, rgba(255, 85, 0, 0));
+  opacity: 0.8; z-index: 11; pointer-events: none;
   animation: scanline 6s linear infinite;
 }
-
-/* CRT Screen Flicker */
 @keyframes flicker {
-  0% { opacity: 0.98; }
-  50% { opacity: 1; }
-  100% { opacity: 0.99; }
+  0% { opacity: 0.98; } 50% { opacity: 1; } 100% { opacity: 0.99; }
 }
-
 .crt-flicker {
   animation: flicker 0.15s infinite;
 }
 
 /* Rotary Knob Styles */
 .knob-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  user-select: none;
+  display: flex; flex-direction: column; align-items: center; user-select: none;
 }
 
-.knob-dial {
-  cursor: grab;
-  transition: transform 0.1s ease-out;
-}
-
-.knob-dial:active {
-  cursor: grabbing;
-}
-
-/* Brushed metal look */
-.brushed-metal {
-  background: linear-gradient(145deg, #1d1d22, #0d0d0f);
-  box-shadow: 3px 3px 6px #050506, -3px -3px 6px #25252c;
-  position: relative;
-}
-
-.brushed-metal::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(255,255,255,0.01),
-    rgba(255,255,255,0.01) 1px,
-    transparent 1px,
-    transparent 2px
-  );
-  pointer-events: none;
-  border-radius: inherit;
-}
-
-/* Vinyl grooves styling */
+/* Vinyl grooves styling (coarser for pixel look) */
 .vinyl-grooves {
-  background: radial-gradient(circle, #08080a 25%, #18181c 25.5%, #08080a 26%, #18181c 28%, #08080a 28.5%, #18181c 32%, #08080a 32.5%, #18181c 38%, #08080a 38.5%, #18181c 42%, #08080a 42.5%, #18181c 48%, #08080a 48.5%, #18181c 55%, #08080a 55.5%, #18181c 62%, #08080a 62.5%, #18181c 70%, #08080a 70.5%, #1c1c20 98%);
-  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.8), 0 4px 20px rgba(0, 0, 0, 0.6);
+  background: radial-gradient(circle, #08080a 25%, #18181c 26%, #08080a 27%, #18181c 30%, #08080a 31%, #18181c 35%, #08080a 36%, #18181c 40%, #08080a 41%, #18181c 45%, #08080a 46%, #18181c 50%, #08080a 51%, #18181c 58%, #08080a 59%, #18181c 65%, #08080a 66%, #18181c 75%, #08080a 76%, #1c1c20 98%);
 }
 
-/* LED Indicator lights */
-.led-indicator {
-  transition: background-color 0.2s, box-shadow 0.2s;
-}
-
-/* Font helpers */
-.font-orbitron {
-  font-family: 'Orbitron', sans-serif;
-}
-.font-tech {
-  font-family: 'Share Tech Mono', monospace;
-}
-.font-mono {
-  font-family: 'JetBrains Mono', monospace;
+.font-pixel {
+  font-family: 'Press Start 2P', cursive;
+  line-height: 1.5;
 }
