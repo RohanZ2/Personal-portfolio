@@ -57,12 +57,12 @@ export default function ConsoleLayout() {
   };
 
   return (
-    <div className="min-h-screen w-full pixel-bg flex flex-col justify-between p-4 md:p-8 overflow-x-hidden font-pixel text-zinc-300">
-      
+    <div className="h-screen w-full pixel-bg flex flex-col justify-between p-4 md:p-8 overflow-hidden font-pixel text-zinc-300">
+
       {/* Header bar */}
       <div className="flex justify-between items-center w-full pb-4">
         <div className="flex items-center gap-4">
-          <span className="text-[12px] md:text-[16px] text-primary tracking-widest uppercase pixel-border p-2 bg-[#0d0d12]">PRTF-V3.SKY // PIXEL DECK</span>
+          <span className="text-[12px] md:text-[16px] text-primary tracking-widest uppercase p-2 bg-[#141416]/50 rounded-md">PRTF-V3.SKY // PIXEL DECK</span>
           <div className="flex gap-2">
             <span className={`w-3 h-3 ${isPowered ? 'bg-primary shadow-led-orange animate-pulse' : 'bg-zinc-800'}`}></span>
             <span className={`w-3 h-3 ${isPowered ? 'bg-secondary shadow-led-amber animate-pulse' : 'bg-zinc-800'}`}></span>
@@ -73,42 +73,47 @@ export default function ConsoleLayout() {
         </div>
       </div>
 
-      {/* Spaced-out Main Layout */}
-      <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center justify-items-center">
-        
-        {/* Module 1: Controls (Left Panel) - Spans 2 cols */}
-        <div className="w-full lg:col-span-2 h-full flex items-center justify-start max-w-[200px]">
-          <ControlPanel
-            isPowered={isPowered}
-            setIsPowered={setIsPowered}
-            activeTab={activeTab}
-            setActiveTab={handleNavigateTab}
-            volume={volume}
-            setVolume={setVolume}
-            rpmMode={rpmMode}
-            setRpmMode={setRpmMode}
-          />
+      {/* Free Hardware Desktop Layout */}
+      <div className="flex-1 w-full relative h-full min-h-0 flex items-center">
+
+        {/* Left Side: Scattered Hardware (Screen & Controls) */}
+        <div className="flex flex-col justify-center gap-12 z-30 w-full md:w-1/2 h-full pl-4 md:pl-12 pt-10">
+          {/* CRT Screen Display */}
+          <div className="w-full max-w-[550px] h-[500px] transform md:-rotate-1 hover:rotate-0 transition-transform duration-500 shadow-2xl">
+            <ScreenDisplay
+              isPowered={isPowered}
+              activeTab={activeTab}
+              activeProject={activeProject}
+              onNavigateTab={handleNavigateTab}
+            />
+          </div>
+
+          {/* Control Panel */}
+          <div className="w-[280px] md:ml-12 transform md:rotate-2 hover:rotate-0 transition-transform duration-500">
+            <ControlPanel
+              isPowered={isPowered}
+              setIsPowered={setIsPowered}
+              activeTab={activeTab}
+              setActiveTab={handleNavigateTab}
+              volume={volume}
+              setVolume={setVolume}
+              rpmMode={rpmMode}
+              setRpmMode={setRpmMode}
+            />
+          </div>
         </div>
 
-        {/* Module 2: Screen (Center Display) - Spans 5 cols */}
-        <div className="w-full lg:col-span-5 h-full flex items-center justify-center max-w-[600px]">
-          <ScreenDisplay
-            isPowered={isPowered}
-            activeTab={activeTab}
-            activeProject={activeProject}
-            onNavigateTab={handleNavigateTab}
-          />
-        </div>
-
-        {/* Module 3: Turntable (Right Panel) - Spans 5 cols */}
-        <div className="w-full lg:col-span-5 h-full flex items-center justify-end max-w-[700px]">
-          <TurntableDeck
-            isPowered={isPowered}
-            activeProject={activeProject}
-            setActiveProject={handleSelectProject}
-            projects={projects}
-            rpmMode={rpmMode}
-          />
+        {/* Right Side: Massive Turntable */}
+        <div className="absolute right-[-10%] md:right-[-5%] lg:right-0 top-1/2 transform -translate-y-1/2 z-10 w-[700px] md:w-[900px] lg:w-[1000px] h-full flex items-center justify-center pointer-events-none">
+          <div className="pointer-events-auto w-full h-full flex items-center justify-center">
+            <TurntableDeck
+              isPowered={isPowered}
+              activeProject={activeProject}
+              setActiveProject={handleSelectProject}
+              projects={projects}
+              rpmMode={rpmMode}
+            />
+          </div>
         </div>
       </div>
 

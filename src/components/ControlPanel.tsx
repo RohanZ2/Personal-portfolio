@@ -160,7 +160,13 @@ export default function ControlPanel({
         </AnimatePresence>
       </div>
 
-      <div className="w-full max-w-[240px] h-full min-h-[600px] flex flex-col items-center justify-between py-8 px-6 pixel-border bg-[#0d0d12]">
+      <div className="w-full max-w-[240px] h-full min-h-[600px] flex flex-col items-center justify-between py-10 px-6 bg-[#16161d] rounded-xl border-8 border-[#22222a] shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative">
+        
+        {/* Hardware details: Screws */}
+        <div className="absolute top-3 left-3 w-3 h-3 rounded-full bg-zinc-900 border border-zinc-700 shadow-inner flex items-center justify-center"><div className="w-full h-[1px] bg-zinc-700 transform rotate-45"></div></div>
+        <div className="absolute top-3 right-3 w-3 h-3 rounded-full bg-zinc-900 border border-zinc-700 shadow-inner flex items-center justify-center"><div className="w-full h-[1px] bg-zinc-700 transform rotate-45"></div></div>
+        <div className="absolute bottom-3 left-3 w-3 h-3 rounded-full bg-zinc-900 border border-zinc-700 shadow-inner flex items-center justify-center"><div className="w-full h-[1px] bg-zinc-700 transform rotate-45"></div></div>
+        <div className="absolute bottom-3 right-3 w-3 h-3 rounded-full bg-zinc-900 border border-zinc-700 shadow-inner flex items-center justify-center"><div className="w-full h-[1px] bg-zinc-700 transform rotate-45"></div></div>
         
         {/* SECTION 1: POWER SWITCH */}
         <div className="flex flex-col items-center w-full mb-8">

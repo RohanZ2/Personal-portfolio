@@ -47,9 +47,15 @@ export default function ScreenDisplay({
   }, []);
 
   return (
-    <div className="w-full h-full min-h-[500px] pixel-border bg-[#08080c] p-4 flex flex-col justify-between relative shadow-2xl">
+    <div className="w-full h-full min-h-[500px] bg-[#0c0c10] p-4 md:p-6 flex flex-col justify-between relative rounded-2xl border-[12px] border-[#181820] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+      {/* Power Indicator */}
+      <div className="absolute bottom-3 right-6 flex items-center gap-2 z-20">
+        <span className="text-[8px] text-zinc-600 uppercase">PWR</span>
+        <div className={`w-2 h-2 rounded-full ${isPowered ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-zinc-800'}`}></div>
+      </div>
+
       {/* CRT Screen Outer Bezel */}
-      <div className={`w-full h-full pixel-border bg-[#050508] p-6 relative overflow-hidden transition-all duration-700 ${isPowered ? 'opacity-100 crt-flicker shadow-crt-glow' : 'opacity-0 scale-95'}`}>
+      <div className={`w-full h-full bg-[#050508]/40 p-6 relative overflow-hidden rounded-lg transition-all duration-700 border-2 border-black ${isPowered ? 'opacity-100 crt-flicker' : 'opacity-0 scale-95'}`}>
         
         {isPowered && <div className="crt-scanline"></div>}
 
