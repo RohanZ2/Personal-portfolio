@@ -208,10 +208,10 @@ export default function TurntableDeck({
                   }}
                   onHoverStart={() => handleHoverProject(project)}
                   animate={{
-                    x: isActive ? outX : restX,
+                    x: restX,
                     y: 80 + idx * 130,
-                    scale: isActive ? 1.04 : 1,
-                    opacity: isActive ? 1 : 0.82,
+                    scale: 1,
+                    opacity: isActive ? 1 : 0.75,
                     rotateY: 0,
                   }}
                   whileHover={{ x: outX, rotateY: 14, scale: 1.12, opacity: 1 }}
