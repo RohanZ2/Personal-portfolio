@@ -1,9 +1,9 @@
-import ConsoleLayout from '../components/ConsoleLayout';
+import TerminalDashboard from '../components/TerminalDashboard';
 
 export default function Home() {
   return (
     <main>
-      <ConsoleLayout />
+      <TerminalDashboard />
     </main>
   );
 }
