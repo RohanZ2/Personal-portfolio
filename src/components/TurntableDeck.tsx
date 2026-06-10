@@ -63,6 +63,7 @@ export default function TurntableDeck({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentRpm, setCurrentRpm] = useState(0);
   const [modalProject, setModalProject] = useState<Project | null>(null);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const requestRef = useRef<number | null>(null);
   const rpmTarget = isPlaying ? rpmMode : 0;
 
@@ -194,7 +195,10 @@ export default function TurntableDeck({
           >
             {projects.map((project, idx) => {
               const isActive = activeProject.title === project.title;
-              const zIdx = isActive ? 10 : (idx + 1);
+              const isHovered = hoveredIdx === idx;
+              // Hovered card pops to the very front; otherwise natural stack order
+              // (later cards sit above earlier ones so each spine peeks cleanly).
+              const zIdx = isHovered ? 50 : (idx + 1);
               const restX = 60 + idx * 10;
               const outX = -185;
               return (
@@ -206,16 +210,20 @@ export default function TurntableDeck({
                       setModalProject(project);
                     }
                   }}
-                  onHoverStart={() => handleHoverProject(project)}
-                  animate={{
-                    x: restX,
-                    y: 80 + idx * 130,
-                    scale: 1,
-                    opacity: isActive ? 1 : 0.75,
-                    rotateY: 0,
+                  onHoverStart={() => {
+                    if (!isPowered) return;
+                    setHoveredIdx(idx);
+                    handleHoverProject(project);
                   }}
-                  whileHover={{ x: outX, rotateY: 14, scale: 1.12, opacity: 1 }}
-                  transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+                  onHoverEnd={() => setHoveredIdx(null)}
+                  animate={{
+                    x: isHovered ? outX : restX,
+                    y: 80 + idx * 130,
+                    rotateY: isHovered ? 14 : 0,
+                    scale: isHovered ? 1.1 : 1,
+                    opacity: isHovered ? 1 : (isActive ? 0.85 : 0.7),
+                  }}
+                  transition={{ type: 'tween', duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                   style={{ position: 'absolute', zIndex: zIdx, cursor: isPowered ? 'pointer' : 'default', transformStyle: 'preserve-3d' }}
                   className="group w-[460px] h-[460px] overflow-hidden shadow-2xl bg-[#0d0d12]"
                 >
@@ -235,7 +243,7 @@ export default function TurntableDeck({
                   <div className="absolute inset-0 bg-black/25" />
 
                   {/* Frosted glass HUD — slides up on hover */}
-                  <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-20">
+                  <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20">
                     <div className="m-4 p-5 bg-white/5 backdrop-blur-md border border-white/10">
                       <div className="text-[10px] text-primary tracking-[0.2em] uppercase mb-1">{project.volume}</div>
                       <div className="text-[20px] font-black text-white uppercase leading-tight mb-3">{project.title}</div>
