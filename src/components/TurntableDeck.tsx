@@ -1,10 +1,15 @@
 'use client';
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, Environment, Center, OrthographicCamera } from '@react-three/drei';
 import Image from 'next/image';
+
+// framer-motion v10 types break under @types/react v19 — cast to recover HTML attrs
+const MotionDiv = motion.div as unknown as React.ComponentType<
+  MotionProps & React.HTMLAttributes<HTMLDivElement> & { style?: React.CSSProperties }
+>;
 
 interface Project {
   title: string;
@@ -56,35 +61,13 @@ export default function TurntableDeck({
   rpmMode,
 }: TurntableDeckProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [currentRpm, setCurrentRpm] = useState(0);
+  const [modalProject, setModalProject] = useState<Project | null>(null);
   const requestRef = useRef<number | null>(null);
   const rpmTarget = isPlaying ? rpmMode : 0;
-  const panelTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleMouseEnterProject = (project: Project) => {
-    if (isPowered) {
-      if (panelTimeoutRef.current) clearTimeout(panelTimeoutRef.current);
-      setActiveProject(project);
-      setIsPanelOpen(true);
-    }
-  };
-
-  const handleMouseLeaveProject = () => {
-    panelTimeoutRef.current = setTimeout(() => {
-      setIsPanelOpen(false);
-    }, 400);
-  };
-
-  const handleMouseEnterPanel = () => {
-    if (panelTimeoutRef.current) clearTimeout(panelTimeoutRef.current);
-    setIsPanelOpen(true);
-  };
-
-  const handleMouseLeavePanel = () => {
-    panelTimeoutRef.current = setTimeout(() => {
-      setIsPanelOpen(false);
-    }, 400);
+  const handleHoverProject = (project: Project) => {
+    if (isPowered) setActiveProject(project);
   };
 
   useEffect(() => {
@@ -120,43 +103,64 @@ export default function TurntableDeck({
 
   return (
     <>
-      {/* Slide-out Panel for Active Project Info */}
+      {/* Game-style modal overlay */}
       <AnimatePresence>
-        {isPowered && isPanelOpen && activeProject && (
-          <motion.div
-            key="project-panel"
-            initial={{ x: '-100%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '-100%', opacity: 0 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-            className="fixed left-0 top-0 bottom-0 w-[320px] bg-[#0c0c10] border-r-8 border-[#181820] shadow-[50px_0_100px_rgba(0,0,0,0.9)] z-[100] p-8 flex flex-col justify-center"
-            onMouseEnter={handleMouseEnterPanel}
-            onMouseLeave={handleMouseLeavePanel}
+        {modalProject && (
+          <MotionDiv
+            key="modal-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onTap={() => setModalProject(null)}
+            className="fixed inset-0 z-[200] flex items-center justify-center backdrop-blur-md bg-black/70"
           >
-            <div className="absolute top-4 right-4">
-              <button onClick={() => setIsPanelOpen(false)} className="text-zinc-500 hover:text-white font-bold p-2">X</button>
-            </div>
-            <div className="mb-8">
-              <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Selected Project</span>
-              <h2 className="text-2xl font-black text-white uppercase mt-2 text-shadow-sm">{activeProject.title}</h2>
-              <div className="w-12 h-1 bg-primary mt-4"></div>
-            </div>
+            <MotionDiv
+              initial={{ scale: 0.88, y: 24, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.88, y: 24, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              style={{ position: 'relative' }}
+              className="w-[500px] bg-[#0c0c10] border border-primary/40 shadow-[0_0_80px_rgba(255,120,0,0.15)] p-8"
+            >
+              {/* Top accent bar */}
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-primary" />
 
-            <p className="text-xs text-zinc-300 leading-loose mb-8">{activeProject.description}</p>
-
-            <div className="mb-8">
-              <span className="text-[10px] text-zinc-500 uppercase tracking-widest block mb-4">Technology Stack</span>
-              <div className="flex flex-wrap gap-2">
-                {activeProject.tech.map((t, i) => (
-                  <span key={i} className="text-[10px] bg-[#1a1a24] text-secondary px-2 py-1 border border-zinc-800">{t}</span>
+              <div className="text-[10px] text-primary tracking-[0.3em] uppercase mb-3">
+                {modalProject.volume} — SYSTEM RECORD
+              </div>
+              <h2 className="text-[32px] font-black text-white uppercase leading-none mb-4">
+                {modalProject.title}
+              </h2>
+              <div className="w-full h-px bg-zinc-800 mb-6" />
+              <p className="text-[12px] text-zinc-300 leading-loose mb-6">
+                {modalProject.description}
+              </p>
+              <div className="flex flex-wrap gap-2 mb-8">
+                {modalProject.tech.map(t => (
+                  <span key={t} className="text-[10px] bg-primary/10 border border-primary/30 text-primary px-3 py-1 tracking-widest uppercase">
+                    {t}
+                  </span>
                 ))}
               </div>
-            </div>
-
-            <a href={activeProject.link} className="w-full text-center py-4 bg-primary text-black font-black uppercase tracking-widest hover:bg-white transition-colors shadow-[0_0_15px_rgba(0,240,255,0.4)]">
-              Launch Sequence
-            </a>
-          </motion.div>
+              <div className="flex gap-3">
+                <a
+                  href={modalProject.link}
+                  className="flex-1 text-center py-3 bg-primary text-black font-black uppercase tracking-widest hover:bg-white transition-colors text-[12px]"
+                >
+                  LAUNCH SEQUENCE
+                </a>
+                <div
+                  role="button"
+                  onClick={() => setModalProject(null)}
+                  className="px-6 py-3 border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-400 transition-colors uppercase tracking-widest text-[11px] cursor-pointer"
+                >
+                  CLOSE
+                </div>
+              </div>
+            </MotionDiv>
+          </MotionDiv>
         )}
       </AnimatePresence>
 
@@ -183,64 +187,80 @@ export default function TurntableDeck({
         {/* Center section: Platter & Album Covers Behind */}
         <div className="flex-1 w-full relative flex items-center justify-center z-10 mt-16">
 
-          {/* ALBUM COVERS BEHIND THE PLATTER (Left side) */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-[5] pointer-events-auto" style={{ width: '380px', height: '500px' }}>
+          {/* ALBUM COVERS — record crate style, stacked behind the disc */}
+          <div
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-[5] pointer-events-auto"
+            style={{ width: '500px', height: '800px', perspective: '1400px' }}
+          >
             {projects.map((project, idx) => {
               const isActive = activeProject.title === project.title;
+              const zIdx = isActive ? 10 : (idx + 1);
+              const restX = 60 + idx * 10;
+              const outX = -185;
               return (
-                <motion.div
+                <MotionDiv
                   key={project.title}
-                  onClick={() => {
+                  onTap={() => {
                     if (isPowered) {
                       setActiveProject(project);
+                      setModalProject(project);
                     }
                   }}
-                  onMouseEnter={() => handleMouseEnterProject(project)}
-                  onMouseLeave={handleMouseLeaveProject}
-                  layout
-                  initial={{ x: 0, y: idx * 40, rotate: (idx - 1) * -5, opacity: 0.8 }}
+                  onHoverStart={() => handleHoverProject(project)}
                   animate={{
-                    x: isActive ? -80 : (idx * 15 - 30),
-                    y: 60 + (idx - 1) * 50,
-                    rotate: isActive ? 0 : (idx - 1) * -5,
-                    scale: isActive ? 1.08 : 1,
-                    opacity: isActive ? 1 : 0.75,
+                    x: isActive ? outX : restX,
+                    y: 80 + idx * 130,
+                    scale: isActive ? 1.04 : 1,
+                    opacity: isActive ? 1 : 0.82,
+                    rotateY: 0,
                   }}
-                  whileHover={{
-                    x: -100,
-                    rotate: 0,
-                    scale: 1.12,
-                    opacity: 1,
-                  }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-                  style={{ position: 'absolute', zIndex: isActive ? 10 : idx }}
-                  className={`group cursor-pointer w-[320px] h-[320px] flex flex-col items-start justify-end p-6 rounded-sm shadow-2xl overflow-hidden ${isActive ? 'bg-[#1a1a24] border-l-4 border-primary' : 'bg-[#0d0d12] border border-zinc-800'
-                    }`}
+                  whileHover={{ x: outX, rotateY: 14, scale: 1.12, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+                  style={{ position: 'absolute', zIndex: zIdx, cursor: isPowered ? 'pointer' : 'default', transformStyle: 'preserve-3d' }}
+                  className="group w-[460px] h-[460px] overflow-hidden shadow-2xl bg-[#0d0d12]"
                 >
-                  {project.image && (
-                    <div className="absolute inset-0 w-full h-full z-0 opacity-80 group-hover:opacity-100 transition-opacity">
-                      <Image src={project.image} alt={project.title} fill style={{ objectFit: 'cover' }} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-                    </div>
-                  )}
-                  <div className="relative z-10 text-[12px] text-zinc-300 font-black tracking-widest bg-black/60 px-2 py-1 pixel-border">{project.volume}</div>
-                  <div className="relative z-10 text-[18px] font-black text-white mt-2 uppercase bg-black/60 px-2 py-1 pixel-border text-shadow-sm">{project.title}</div>
+                  {/* Colored left spine stripe */}
+                  <div className={`absolute left-0 top-0 bottom-0 w-[6px] ${isActive ? 'bg-primary' : 'bg-zinc-700'} transition-colors duration-300`} />
 
-                  {/* Description peeking on hover */}
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    whileHover={{ height: 'auto', opacity: 1 }}
-                    className="relative z-10 mt-2 text-[10px] text-zinc-300 leading-relaxed overflow-hidden bg-black/60 px-2 pixel-border"
-                  >
-                    {project.description.slice(0, 60)}...
-                  </motion.div>
-                </motion.div>
+                  {/* Album art */}
+                  {project.image ? (
+                    <div className="absolute inset-0">
+                      <Image src={project.image} alt={project.title} fill style={{ objectFit: 'cover' }} />
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#0d0d12] to-[#0a0a0f]" />
+                  )}
+
+                  {/* Base dark overlay */}
+                  <div className="absolute inset-0 bg-black/25" />
+
+                  {/* Frosted glass HUD — slides up on hover */}
+                  <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-20">
+                    <div className="m-4 p-5 bg-white/5 backdrop-blur-md border border-white/10">
+                      <div className="text-[10px] text-primary tracking-[0.2em] uppercase mb-1">{project.volume}</div>
+                      <div className="text-[20px] font-black text-white uppercase leading-tight mb-3">{project.title}</div>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {project.tech.slice(0, 2).map(t => (
+                          <span key={t} className="text-[9px] bg-white/10 border border-white/10 text-zinc-300 px-2 py-1 tracking-wide uppercase">{t}</span>
+                        ))}
+                      </div>
+                      <div className="text-[10px] text-primary tracking-[0.15em] uppercase flex items-center gap-2">
+                        CLICK TO OPEN <span>›</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Spine volume label */}
+                  <div className="absolute left-3 top-6 z-10">
+                    <span className="text-[10px] text-zinc-500 tracking-widest uppercase">{project.volume}</span>
+                  </div>
+                </MotionDiv>
               );
             })}
           </div>
 
           {/* PLATTER & VINYL (Foreground) - Massive Size */}
-          <div className="relative w-[750px] h-[750px]">
+          <div className="relative w-[750px] h-[750px] z-10">
             {/* The vinyl disc */}
             <div
               className="w-full h-full rounded-full bg-[#050508] relative flex items-center justify-center z-10 shadow-2xl border-4 border-zinc-900 cursor-pointer"
