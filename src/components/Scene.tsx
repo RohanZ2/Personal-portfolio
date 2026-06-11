@@ -2,18 +2,31 @@
 
 import { Suspense, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
 import ComputerScreens from './ComputerScreens';
 
-// Eases the camera toward the pointer so the scene reads as 3D while the
-// screens stay directly in front of the viewer.
+// First-person look: the camera never moves, but the view turns with the
+// mouse. Range is intentionally small — just enough to glance around, with
+// extra room downward for the table that will sit below the screens later.
+const MAX_YAW = 0.35; // ~20° left/right
+const MAX_PITCH_UP = 0.18; // ~10° up
+const MAX_PITCH_DOWN = 0.55; // ~32° down
+
 function CameraRig() {
-  const target = useRef(new THREE.Vector3(0, 0, 7));
+  const yaw = useRef(0);
+  const pitch = useRef(0);
 
   useFrame(({ camera, pointer }, delta) => {
-    target.current.set(pointer.x * 0.6, pointer.y * 0.4, 7);
-    camera.position.lerp(target.current, 1 - Math.exp(-4 * delta));
-    camera.lookAt(0, 0, 0);
+    const targetYaw = -pointer.x * MAX_YAW;
+    const targetPitch =
+      pointer.y >= 0 ? pointer.y * MAX_PITCH_UP : pointer.y * MAX_PITCH_DOWN;
+
+    const t = 1 - Math.exp(-4 * delta);
+    yaw.current += (targetYaw - yaw.current) * t;
+    pitch.current += (targetPitch - pitch.current) * t;
+
+    camera.position.set(0, 0, 7);
+    camera.rotation.order = 'YXZ';
+    camera.rotation.set(pitch.current, yaw.current, 0);
   });
 
   return null;

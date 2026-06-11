@@ -2,7 +2,6 @@
 
 import { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
 // The imaginary wall sits on this Z plane. The back of the monitor bank is
