@@ -3,6 +3,7 @@
 import { Suspense, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import ComputerScreens from './ComputerScreens';
+import Table from './Table';
 
 // First-person look: the camera never moves, but the view turns with the
 // mouse. Range is intentionally small — just enough to glance around, with
@@ -46,6 +47,7 @@ export default function Scene() {
         <pointLight position={[4, -2, 3]} intensity={6} color="#ff2975" />
         <Suspense fallback={null}>
           <ComputerScreens />
+          <Table />
         </Suspense>
         <CameraRig />
       </Canvas>
