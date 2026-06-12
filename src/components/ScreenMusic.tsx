@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { ScreenRect } from './ScreenHello';
+import { ScreenId, useScreenFocus } from './screenFocusStore';
 import { useMusic, TRACK_TITLE } from './MusicContext';
 
 const CANVAS_W = 512;
@@ -94,8 +95,17 @@ function drawMusic(
   }
 }
 
-export default function ScreenMusic({ rect }: { rect: ScreenRect }) {
+export default function ScreenMusic({
+  id,
+  rect,
+}: {
+  id: ScreenId;
+  rect: ScreenRect;
+}) {
   const { audioRef, playing, toggle } = useMusic();
+  // While zoomed out, clicks mean "expand" and are caught by the hotspot in
+  // front of this mesh; play/pause only works once the screen is expanded.
+  const focused = useScreenFocus().focused?.id === id;
   const canvasH = Math.round((CANVAS_W * rect.height) / rect.width);
 
   const canvas = useMemo(() => {
@@ -130,6 +140,7 @@ export default function ScreenMusic({ rect }: { rect: ScreenRect }) {
   });
 
   const onClick = (e: ThreeEvent<MouseEvent>) => {
+    if (!focused) return;
     e.stopPropagation();
     toggle();
   };
@@ -138,8 +149,8 @@ export default function ScreenMusic({ rect }: { rect: ScreenRect }) {
     <mesh
       position={rect.center}
       onClick={onClick}
-      onPointerOver={() => (document.body.style.cursor = 'pointer')}
-      onPointerOut={() => (document.body.style.cursor = 'auto')}
+      onPointerOver={() => focused && (document.body.style.cursor = 'pointer')}
+      onPointerOut={() => focused && (document.body.style.cursor = 'auto')}
     >
       <planeGeometry args={[rect.width, rect.height]} />
       <meshBasicMaterial map={texture} toneMapped={false} />

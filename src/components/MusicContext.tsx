@@ -23,7 +23,7 @@ type MusicState = {
 };
 
 const MusicContext = createContext<MusicState | null>(null);
-
+ 
 // NOTE: this provider must sit INSIDE <Canvas> — React context does not
 // cross react-three-fiber's renderer boundary, and all consumers live in
 // the 3D tree.

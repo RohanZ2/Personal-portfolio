@@ -2,6 +2,7 @@
 
 import { Html } from '@react-three/drei';
 import { ScreenRect } from './ScreenHello';
+import { ScreenId, useScreenFocus } from './screenFocusStore';
 import { bio, projects, skills } from '../data/portfolio';
 
 // CSS pixel width of the embedded UI; height follows the glass aspect.
@@ -89,20 +90,30 @@ function ProjectsPage() {
 }
 
 export default function ScreenPortfolio({
+  id,
   rect,
   page,
 }: {
+  id: ScreenId;
   rect: ScreenRect;
   page: 'about' | 'projects';
 }) {
   const divH = Math.round(DIV_W * (rect.height / rect.width));
   const scale = (rect.width * PX_PER_UNIT) / DIV_W;
 
+  // Until this screen is expanded, the HTML overlay must be click-through:
+  // it sits on top of the canvas in the DOM, so if it swallowed pointer
+  // events the camera rig and the expand hotspots would never see them
+  // (this is what caused the look-around jitter near the top screens).
+  const focused = useScreenFocus().focused?.id === id;
+
   return (
     <group position={rect.center}>
       <Html
         transform
         scale={scale}
+        zIndexRange={[40, 0]}
+        pointerEvents={focused ? 'auto' : 'none'}
         style={{ width: DIV_W, height: divH }}
         className="select-none overflow-hidden font-mono"
       >

@@ -6,6 +6,8 @@ import * as THREE from 'three';
 import ScreenHello, { ScreenRect } from './ScreenHello';
 import ScreenMusic from './ScreenMusic';
 import ScreenPortfolio from './ScreenPortfolio';
+import ScreenHotspot from './ScreenHotspot';
+import { ScreenId } from './screenFocusStore';
 
 // The imaginary wall sits on this Z plane. The back of the monitor bank is
 // flush against it, so a visible wall mesh can later be dropped in at the
@@ -103,10 +105,13 @@ export default function ComputerScreens() {
       <primitive object={scene} />
       {screens && (
         <>
-          <ScreenPortfolio rect={screens.topLeft} page="about" />
-          <ScreenPortfolio rect={screens.topRight} page="projects" />
+          <ScreenPortfolio id="topLeft" rect={screens.topLeft} page="about" />
+          <ScreenPortfolio id="topRight" rect={screens.topRight} page="projects" />
           <ScreenHello rect={screens.bottomLeft} />
-          <ScreenMusic rect={screens.bottomRight} />
+          <ScreenMusic id="bottomRight" rect={screens.bottomRight} />
+          {(Object.keys(screens) as ScreenId[]).map((id) => (
+            <ScreenHotspot key={id} id={id} rect={screens[id]} />
+          ))}
         </>
       )}
     </>
