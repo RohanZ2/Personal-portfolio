@@ -1,10 +1,11 @@
 // Dev helper: screenshot the running dev server.
-// Usage: node scripts/screenshot.js <url> <outfile> [waitMs] [mouseX] [mouseY]
+// Usage: node scripts/screenshot.js <url> <outfile> [waitMs] [mouseX] [mouseY] [clipX clipY clipW clipH]
 // mouseX/mouseY are in [-1, 1] viewport coords to simulate the look-around.
 const puppeteer = require('puppeteer-core');
 const fs = require('fs');
 
-const [url, outfile, waitMs = '8000', mouseX, mouseY] = process.argv.slice(2);
+const [url, outfile, waitMs = '8000', mouseX, mouseY, ...clip] =
+  process.argv.slice(2);
 
 const EDGE_PATHS = [
   'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
@@ -33,7 +34,13 @@ const EDGE_PATHS = [
     await page.mouse.move(px, py, { steps: 10 });
     await new Promise((r) => setTimeout(r, 1500));
   }
-  await page.screenshot({ path: outfile });
+  const [cx, cy, cw, ch] = clip.map(Number);
+  await page.screenshot({
+    path: outfile,
+    ...(clip.length === 4
+      ? { clip: { x: cx, y: cy, width: cw, height: ch } }
+      : {}),
+  });
   await browser.close();
   console.log('saved', outfile);
 })();

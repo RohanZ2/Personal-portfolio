@@ -4,6 +4,8 @@ import { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import ScreenHello, { ScreenRect } from './ScreenHello';
+import ScreenMusic from './ScreenMusic';
+import ScreenPortfolio from './ScreenPortfolio';
 
 // The imaginary wall sits on this Z plane. The back of the monitor bank is
 // flush against it, so a visible wall mesh can later be dropped in at the
@@ -32,7 +34,7 @@ const SCREEN_QUADS: { x: [number, number]; z: [number, number] }[] = [
 export default function ComputerScreens() {
   const { scene } = useGLTF('/retro_cyberpunk_computer_screens.glb');
 
-  const topLeftRect = useMemo(() => {
+  const screens = useMemo(() => {
     // Normalize the Sketchfab export: the model ships facing away from the
     // camera, so flip it, then scale to a known width, center it on the
     // camera axis, and push it back until it touches the wall plane.
@@ -56,8 +58,8 @@ export default function ComputerScreens() {
     );
     scene.updateMatrixWorld(true);
 
-    // Map the display quads to world space and pick the top-left one as
-    // seen by the player (highest row, then leftmost).
+    // Map the display quads to world space and sort them into the 2x2
+    // grid as seen by the player.
     let screenMesh: THREE.Mesh | null = null;
     scene.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
@@ -85,14 +87,28 @@ export default function ComputerScreens() {
       };
     });
     rects.sort((a, b) => b.center.y - a.center.y);
-    const topRow = rects.slice(0, 2).sort((a, b) => a.center.x - b.center.x);
-    return topRow[0];
+    const [topRow, bottomRow] = [rects.slice(0, 2), rects.slice(2)].map(
+      (row) => row.sort((a, b) => a.center.x - b.center.x)
+    );
+    return {
+      topLeft: topRow[0],
+      topRight: topRow[1],
+      bottomLeft: bottomRow[0],
+      bottomRight: bottomRow[1],
+    };
   }, [scene]);
 
   return (
     <>
       <primitive object={scene} />
-      {topLeftRect && <ScreenHello rect={topLeftRect} />}
+      {screens && (
+        <>
+          <ScreenPortfolio rect={screens.topLeft} page="about" />
+          <ScreenPortfolio rect={screens.topRight} page="projects" />
+          <ScreenHello rect={screens.bottomLeft} />
+          <ScreenMusic rect={screens.bottomRight} />
+        </>
+      )}
     </>
   );
 }

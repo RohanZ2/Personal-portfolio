@@ -1,18 +1,17 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SCREENS_BOTTOM_Y } from './ComputerScreens';
+import { useMusic } from './MusicContext';
 
 const PLAYER_WIDTH = 2; // world units, scaled from the model's raw size
 const POSITION_X = 1.9; // right side of the table
 const POSITION_Z = 2.9; // toward the player
 const YAW = -0.3; // slight angle so it doesn't sit perfectly square
 const SPIN_SPEED = 3.5; // rad/s ≈ 33 rpm
-
-const AUDIO_SRC = '/Where_The_wind_takes_you.mp3';
 
 // Local-space spin axis of the disc, measured from the GLB's vertex data.
 // The disc mesh (material "cd.002") is centered here, not at its node
@@ -22,10 +21,9 @@ const DISC_CENTER_Z = -0.132;
 
 export default function VinylPlayer() {
   const { scene } = useGLTF('/vinyl_player_optimized.glb');
-  const [spinning, setSpinning] = useState(true);
+  const { playing, toggle } = useMusic();
   const speed = useRef(0);
   const discRef = useRef<THREE.Mesh | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useMemo(() => {
     // Same normalization pattern as the other models: reset first so the
@@ -62,46 +60,24 @@ export default function VinylPlayer() {
     });
   }, [scene]);
 
-  useEffect(() => {
-    const audio = new Audio(AUDIO_SRC);
-    audio.loop = true;
-    audioRef.current = audio;
-    return () => {
-      audio.pause();
-      audioRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (spinning) {
-      // Browsers block autoplay before the first user gesture; in that
-      // case the disc spins silently and audio starts on the next toggle.
-      audio.play().catch(() => { });
-    } else {
-      audio.pause();
-    }
-  }, [spinning]);
-
   // Ease the platter up to speed / down to a stop instead of snapping.
   useFrame((_, delta) => {
-    const target = spinning ? SPIN_SPEED : 0;
+    const target = playing ? SPIN_SPEED : 0;
     speed.current += (target - speed.current) * (1 - Math.exp(-3 * delta));
     if (discRef.current) {
       discRef.current.rotation.y += speed.current * delta;
     }
   });
 
-  const toggle = (e: ThreeEvent<MouseEvent>) => {
+  const onClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
-    setSpinning((s) => !s);
+    toggle();
   };
 
   return (
     <primitive
       object={scene}
-      onClick={toggle}
+      onClick={onClick}
       onPointerOver={() => (document.body.style.cursor = 'pointer')}
       onPointerOut={() => (document.body.style.cursor = 'auto')}
     />

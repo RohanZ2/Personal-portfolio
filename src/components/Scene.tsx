@@ -5,6 +5,9 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import ComputerScreens from './ComputerScreens';
 import Table from './Table';
 import VinylPlayer from './VinylPlayer';
+import IbmKeyboard from './IbmKeyboard';
+import CasioKeyboard from './CasioKeyboard';
+import { MusicProvider } from './MusicContext';
 
 // First-person look: the camera never moves, but the view turns with the
 // mouse. Range is intentionally small — just enough to glance around, with
@@ -46,11 +49,15 @@ export default function Scene() {
         <directionalLight position={[0, 3, 8]} intensity={1.6} />
         <pointLight position={[-4, 2, 3]} intensity={6} color="#00ff9d" />
         <pointLight position={[4, -2, 3]} intensity={6} color="#ff2975" />
-        <Suspense fallback={null}>
-          <ComputerScreens />
-          <Table />
-          <VinylPlayer />
-        </Suspense>
+        <MusicProvider>
+          <Suspense fallback={null}>
+            <ComputerScreens />
+            <Table />
+            <VinylPlayer />
+            <IbmKeyboard />
+            <CasioKeyboard />
+          </Suspense>
+        </MusicProvider>
         <CameraRig />
       </Canvas>
     </div>
