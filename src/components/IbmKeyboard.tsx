@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { placeOnTable } from './placeOnTable';
+import { NEON, NEON_CYCLE } from './screenTheme';
 
 export default function IbmKeyboard() {
   const { scene } = useGLTF('/ibm_model_m_keyboard.glb');
@@ -11,17 +12,39 @@ export default function IbmKeyboard() {
   useMemo(() => {
     placeOnTable(scene, { width: 2.4, x: -0.4, z: 3.6, yaw: 0.05 });
 
-    // Tint the whole keyboard black. Clone each material first so we don't
-    // mutate the shared GLTF cache, and drop the baked texture so the color
-    // shows flat instead of being multiplied against the original photo.
+    // Recolor the keyboard to the neon-on-black theme while keeping the
+    // model's baked detail (we tint mat.color, never null out mat.map):
+    //   - the cream frame and already-black bits -> black
+    //   - the key labels -> one steady neon so they stay readable
+    //   - everything else (the keycaps) -> cycling neon per the screens
+    // Each material is cloned first so we don't mutate the shared GLTF cache.
+    const isBlackPart = (n: string) =>
+      ['body', 'black', 'feet'].some((w) => n.includes(w));
+
+    let i = 0;
     scene.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
-      if (!mesh.isMesh || mesh.userData.blacked) return;
+      if (!mesh.isMesh || mesh.userData.tinted) return;
       const mat = (mesh.material as THREE.MeshStandardMaterial).clone();
-      mat.map = null;
-      mat.color.set('#111111');
+      const name = mat.name.toLowerCase();
+
+      if (isBlackPart(name)) {
+        mat.color.set('#0a0a0a');
+        mat.emissive.set('#000000');
+        mat.emissiveIntensity = 0;
+      } else if (name.includes('lettering') || name.includes('sticker')) {
+        // Labels: one consistent neon (with a soft glow) so they read as
+        // text instead of a different color per glyph.
+        mat.color.set(NEON.cyan);
+        mat.emissive.set(NEON.cyan);
+        mat.emissiveIntensity = 0.4;
+      } else {
+        const c = NEON_CYCLE[i++ % NEON_CYCLE.length];
+        mat.color.set(c);
+      }
+
       mesh.material = mat;
-      mesh.userData.blacked = true;
+      mesh.userData.tinted = true;
     });
   }, [scene]);
 

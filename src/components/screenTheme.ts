@@ -31,5 +31,6 @@ export const NEON_CYCLE = [
   NEON.red,
 ];
 
+
 // CSS text-shadow string for an HTML neon glow (used in inline styles).
 export const glow = (color: string, size = 10) => `0 0 ${size}px ${color}`;
