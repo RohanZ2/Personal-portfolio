@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { BASE, NEON, NEON_CYCLE } from './screenTheme';
 
 export type ScreenRect = {
   center: THREE.Vector3;
@@ -39,21 +40,22 @@ function drawScreen(
     const k = (t - LINE_START) / (LINE_END - LINE_START);
     const lineW = Math.min(1, k * 3) * w;
     const lineH = Math.max(3, Math.pow(Math.max(0, (k - 0.25) / 0.75), 2.5) * h);
-    ctx.shadowColor = '#7dffc4';
+    ctx.shadowColor = NEON.pink;
     ctx.shadowBlur = 40;
-    ctx.fillStyle = '#eafff3';
+    ctx.fillStyle = '#f4f4f8';
     ctx.fillRect((w - lineW) / 2, (h - lineH) / 2, lineW, lineH);
     return;
   }
 
-  // Phase 2: powered-on screen — dark green CRT glass with a vignette.
+  // Phase 2: powered-on screen — dark grey CRT glass with a vignette.
   const bg = ctx.createRadialGradient(w / 2, h / 2, h / 4, w / 2, h / 2, w / 1.4);
-  bg.addColorStop(0, '#0a2417');
-  bg.addColorStop(1, '#03100a');
+  bg.addColorStop(0, BASE.panel);
+  bg.addColorStop(1, BASE.black);
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, w, h);
 
-  // Typed message with a blinking block cursor.
+  // Typed message with a blinking block cursor. Each character is drawn in
+  // the next neon so "> HELLO" comes up as a multicolor strip.
   if (t >= TYPE_START) {
     const chars = Math.min(
       MESSAGE.length,
@@ -63,10 +65,15 @@ function drawScreen(
     const text = MESSAGE.slice(0, chars) + (cursorOn ? '█' : '');
     ctx.font = `bold ${Math.round(h * 0.22)}px "Courier New", monospace`;
     ctx.textBaseline = 'middle';
-    ctx.shadowColor = '#37ff9e';
     ctx.shadowBlur = 18;
-    ctx.fillStyle = '#7dffc4';
-    ctx.fillText(text, w * 0.08, h * 0.52);
+    let x = w * 0.08;
+    for (let i = 0; i < text.length; i++) {
+      const color = NEON_CYCLE[i % NEON_CYCLE.length];
+      ctx.shadowColor = color;
+      ctx.fillStyle = color;
+      ctx.fillText(text[i], x, h * 0.52);
+      x += ctx.measureText(text[i]).width;
+    }
   }
 
   // Scanlines over everything.
@@ -79,7 +86,7 @@ function drawScreen(
   // Decaying full-screen flash right after power-on.
   if (t < FLASH_END) {
     const a = 1 - (t - LINE_END) / (FLASH_END - LINE_END);
-    ctx.fillStyle = `rgba(220, 255, 238, ${a.toFixed(3)})`;
+    ctx.fillStyle = `rgba(244, 244, 248, ${a.toFixed(3)})`;
     ctx.fillRect(0, 0, w, h);
   }
 }

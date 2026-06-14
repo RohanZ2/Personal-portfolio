@@ -10,6 +10,7 @@ import IbmKeyboard from './IbmKeyboard';
 import CasioKeyboard from './CasioKeyboard';
 import { MusicProvider } from './MusicContext';
 import { unfocusScreen, useScreenFocus } from './screenFocusStore';
+import { NEON, glow } from './screenTheme';
 
 // First-person look: the camera never moves, but the view turns with the
 // mouse. Range is intentionally small — just enough to glance around, with
@@ -100,8 +101,13 @@ function ExpandHint() {
   return (
     <div
       ref={ref}
-      className="pointer-events-none fixed left-0 top-0 z-50 border border-emerald-500/70 bg-black/80 px-2 py-0.5 font-mono text-[11px] tracking-[0.25em] text-emerald-300 [text-shadow:0_0_8px_rgba(52,255,160,0.8)]"
-      style={{ display: hovered && !focused ? 'block' : 'none' }}
+      className="pointer-events-none fixed left-0 top-0 z-50 border bg-black/80 px-2 py-0.5 font-mono text-[11px] tracking-[0.25em]"
+      style={{
+        display: hovered && !focused ? 'block' : 'none',
+        color: NEON.pink,
+        borderColor: NEON.pink,
+        textShadow: glow(NEON.pink, 8),
+      }}
     >
       EXPAND ⤢
     </div>
@@ -123,7 +129,12 @@ function FocusOverlay() {
   return (
     <button
       onClick={unfocusScreen}
-      className="fixed right-6 top-6 z-50 border border-emerald-500/70 bg-black/80 px-3 py-1.5 font-mono text-xs tracking-[0.25em] text-emerald-300 transition-colors hover:bg-emerald-950 [text-shadow:0_0_8px_rgba(52,255,160,0.8)]"
+      className="fixed right-6 top-6 z-50 border bg-black/80 px-3 py-1.5 font-mono text-xs tracking-[0.25em] transition-colors hover:bg-white/10"
+      style={{
+        color: NEON.pink,
+        borderColor: NEON.pink,
+        textShadow: glow(NEON.pink, 8),
+      }}
     >
       ✕ CLOSE [ESC]
     </button>

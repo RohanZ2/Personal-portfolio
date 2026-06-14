@@ -3,6 +3,7 @@
 import { Html } from '@react-three/drei';
 import { ScreenRect } from './ScreenHello';
 import { ScreenId, useScreenFocus } from './screenFocusStore';
+import { BASE, NEON, NEON_CYCLE, glow } from './screenTheme';
 import { bio, projects, skills } from '../data/portfolio';
 
 // CSS pixel width of the embedded UI; height follows the glass aspect.
@@ -15,31 +16,59 @@ const PX_PER_UNIT = 40;
 function AboutPage() {
   return (
     <div className="flex h-full flex-col gap-3 p-6">
-      <div className="text-[11px] tracking-widest text-emerald-600">
+      <div
+        className="text-[11px] tracking-widest"
+        style={{ color: NEON.pink, textShadow: glow(NEON.pink, 6) }}
+      >
         ROHAN_OS v1.0 — /ABOUT
       </div>
-      <h1 className="text-3xl font-bold text-emerald-300 [text-shadow:0_0_12px_rgba(52,255,160,0.6)]">
+      <h1
+        className="text-3xl font-bold"
+        style={{ color: NEON.yellow, textShadow: glow(NEON.yellow, 14) }}
+      >
         ROHAN TEWARI
       </h1>
-      <div className="text-sm text-emerald-500">FULL STACK ENGINEER</div>
+      <div className="text-sm" style={{ color: NEON.green }}>
+        FULL STACK ENGINEER
+      </div>
       {bio.map((line) => (
-        <p key={line.slice(0, 16)} className="text-[13px] leading-snug text-emerald-200/80">
+        <p
+          key={line.slice(0, 16)}
+          className="text-[13px] leading-snug"
+          style={{ color: BASE.text }}
+        >
           {line}
         </p>
       ))}
       <div className="mt-auto flex flex-col gap-1.5">
-        {skills.map((s) => (
-          <div key={s.name} className="flex items-center gap-2 text-[11px]">
-            <span className="w-28 shrink-0 text-emerald-400">{s.name}</span>
-            <div className="h-2 flex-1 border border-emerald-800 bg-black/40">
+        {skills.map((s, i) => {
+          // Each skill bar gets the next neon in the cycle, so the stack
+          // reads as a stripe of pink/yellow/green/cyan/red.
+          const accent = NEON_CYCLE[i % NEON_CYCLE.length];
+          return (
+            <div key={s.name} className="flex items-center gap-2 text-[11px]">
+              <span className="w-28 shrink-0" style={{ color: NEON.cyan }}>
+                {s.name}
+              </span>
               <div
-                className="h-full bg-emerald-400 [box-shadow:0_0_8px_rgba(52,255,160,0.8)]"
-                style={{ width: `${s.level}%` }}
-              />
+                className="h-2 flex-1 border"
+                style={{ borderColor: BASE.line, background: '#00000066' }}
+              >
+                <div
+                  className="h-full"
+                  style={{
+                    width: `${s.level}%`,
+                    background: accent,
+                    boxShadow: glow(accent, 8),
+                  }}
+                />
+              </div>
+              <span className="w-8 text-right" style={{ color: BASE.dim }}>
+                {s.level}
+              </span>
             </div>
-            <span className="w-8 text-right text-emerald-600">{s.level}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -48,42 +77,67 @@ function AboutPage() {
 function ProjectsPage() {
   return (
     <div className="flex h-full flex-col p-6">
-      <div className="mb-3 text-[11px] tracking-widest text-emerald-600">
+      <div
+        className="mb-3 text-[11px] tracking-widest"
+        style={{ color: NEON.pink, textShadow: glow(NEON.pink, 6) }}
+      >
         ROHAN_OS v1.0 — /PROJECTS
       </div>
       <div className="flex-1 space-y-3 overflow-y-auto pr-2">
-        {projects.map((p) => (
-          <div
-            key={p.title}
-            className="border border-emerald-900 bg-black/30 p-3 transition-colors hover:border-emerald-500"
-          >
-            <div className="flex items-baseline justify-between">
-              <h2 className="text-lg font-bold text-emerald-300">{p.title}</h2>
-              <span className="text-[10px] text-emerald-700">{p.volume}</span>
-            </div>
-            <p className="mt-1 text-[12px] leading-snug text-emerald-200/70">
-              {p.description}
-            </p>
-            <div className="mt-2 flex items-center gap-1.5">
-              {p.tech.map((t) => (
-                <span
-                  key={t}
-                  className="border border-emerald-800 px-1.5 py-0.5 text-[10px] text-emerald-400"
+        {projects.map((p, pi) => {
+          // Each card is keyed to one neon so its title, left edge, and tech
+          // tags share a color — keeps the page from turning to mush.
+          const accent = NEON_CYCLE[pi % NEON_CYCLE.length];
+          return (
+            <div
+              key={p.title}
+              className="border-l-2 border p-3"
+              style={{
+                borderColor: BASE.line,
+                borderLeftColor: accent,
+                background: '#00000055',
+              }}
+            >
+              <div className="flex items-baseline justify-between">
+                <h2
+                  className="text-lg font-bold"
+                  style={{ color: accent, textShadow: glow(accent, 8) }}
                 >
-                  {t}
+                  {p.title}
+                </h2>
+                <span className="text-[10px]" style={{ color: BASE.dim }}>
+                  {p.volume}
                 </span>
-              ))}
-              <a
-                href={p.link}
-                target="_blank"
-                rel="noreferrer"
-                className="ml-auto text-[11px] font-bold text-emerald-300 hover:text-emerald-100"
+              </div>
+              <p
+                className="mt-1 text-[12px] leading-snug"
+                style={{ color: BASE.text }}
               >
-                OPEN &gt;&gt;
-              </a>
+                {p.description}
+              </p>
+              <div className="mt-2 flex items-center gap-1.5">
+                {p.tech.map((t) => (
+                  <span
+                    key={t}
+                    className="border px-1.5 py-0.5 text-[10px]"
+                    style={{ borderColor: BASE.line, color: accent }}
+                  >
+                    {t}
+                  </span>
+                ))}
+                <a
+                  href={p.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="ml-auto text-[11px] font-bold"
+                  style={{ color: NEON.pink, textShadow: glow(NEON.pink, 8) }}
+                >
+                  OPEN &gt;&gt;
+                </a>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -120,8 +174,7 @@ export default function ScreenPortfolio({
         <div
           className="relative h-full w-full"
           style={{
-            background:
-              'radial-gradient(ellipse at center, #07130c 0%, #020a05 100%)',
+            background: `radial-gradient(ellipse at center, ${BASE.panel} 0%, ${BASE.black} 100%)`,
           }}
         >
           {page === 'about' ? <AboutPage /> : <ProjectsPage />}
@@ -130,7 +183,7 @@ export default function ScreenPortfolio({
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                'linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 50%)',
+                'linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 50%)',
               backgroundSize: '100% 4px',
             }}
           />
