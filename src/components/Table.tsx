@@ -20,6 +20,10 @@ const TABLE_FRONT_Z = 4.5;
 // scene's own props (screens, vinyl, keyboards) sit on a clean surface.
 const DESK_MATERIAL = 'wire_127127127';
 
+// The model faces away from the camera by default, so its leg/back panel
+// shows. Spin it 180° about Y to present the open front toward the viewer.
+const DESK_YAW = Math.PI;
+
 export default function Table() {
   const { scene } = useGLTF('/office_desk.glb');
 
@@ -42,8 +46,9 @@ export default function Table() {
     }
 
     // useGLTF caches the scene object and StrictMode runs this twice, so
-    // reset the transform first to keep the math idempotent.
-    scene.rotation.set(0, 0, 0);
+    // reset the transform first to keep the math idempotent. Start from the
+    // base yaw that turns the desk's front toward the camera.
+    scene.rotation.set(0, DESK_YAW, 0);
     scene.position.set(0, 0, 0);
     scene.scale.setScalar(1);
     scene.updateMatrixWorld(true);
@@ -52,7 +57,7 @@ export default function Table() {
     let box = new THREE.Box3().setFromObject(scene);
     let size = box.getSize(new THREE.Vector3());
     if (size.x < size.z) {
-      scene.rotation.y = Math.PI / 2;
+      scene.rotation.y = DESK_YAW + Math.PI / 2;
       scene.updateMatrixWorld(true);
       box = new THREE.Box3().setFromObject(scene);
       size = box.getSize(new THREE.Vector3());
