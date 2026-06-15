@@ -4,6 +4,7 @@ import { useMemo, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
+import { SkeletonUtils } from 'three-stdlib';
 import { SCREENS_BOTTOM_Y } from './ComputerScreens';
 import { useMusic } from './MusicContext';
 
@@ -15,8 +16,10 @@ const SPIN_SPEED = 3.5; // rad/s ≈ 33 rpm
 
 // The Pioneer model's spinning platter is the mesh with this material; we
 // locate it at runtime to sit the record on top, rather than hardcoding a
-// measured position (which is brittle when the model changes).
-const PLATTER_MATERIAL = 'plastic';
+// measured position (which is brittle when the model changes). 'metal' is
+// the round platter plate, centered on the turntable's spindle — the
+// 'plastic' mesh sits slightly off-axis and pulled the record left of center.
+const PLATTER_MATERIAL = 'metal';
 
 // The record disc covers most of the platter. Multiplier of the platter's
 // diameter so the vinyl reads as a record sitting on (just inside) it.
@@ -24,10 +27,15 @@ const RECORD_COVERAGE = 0.92;
 
 export default function VinylPlayer() {
   const { scene } = useGLTF('/vinyl_player_pioneer.glb');
-  const { scene: recordScene } = useGLTF('/vinyl_record.glb');
+  const { scene: recordSrc } = useGLTF('/vinyl_record.glb');
   const { playing, toggle } = useMusic();
   const speed = useRef(0);
   const discRef = useRef<THREE.Object3D | null>(null);
+  // useGLTF caches and shares its scene object. Reparenting/scaling that
+  // shared object breaks across remounts and StrictMode's double-run (it left
+  // the disc off-center, mis-scaled, and not spinning). A clone is owned by
+  // this component, so it's always safe to transform.
+  const recordScene = useMemo(() => SkeletonUtils.clone(recordSrc), [recordSrc]);
 
   const record = useMemo(() => {
     // Place the Pioneer body: reset first (useGLTF caches the scene and
@@ -65,7 +73,14 @@ export default function VinylPlayer() {
     const pCenter = pBox.getCenter(new THREE.Vector3());
     const platterDiameter = pBox.max.x - pBox.min.x;
 
-    // Size the record to the platter.
+    // Reset the clone before measuring, so the memo is idempotent under
+    // StrictMode's double-run (measure it in a known, unscaled state).
+    recordScene.position.set(0, 0, 0);
+    recordScene.rotation.set(0, 0, 0);
+    recordScene.scale.setScalar(1);
+    recordScene.updateMatrixWorld(true);
+
+    // Size the record to the platter (measured in its reset state).
     const recBox = new THREE.Box3().setFromObject(recordScene);
     const recDiameter = recBox.getSize(new THREE.Vector3()).x;
     const recScale = (platterDiameter * RECORD_COVERAGE) / recDiameter;
