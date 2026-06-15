@@ -13,22 +13,26 @@ const POSITION_Z = 2.9; // toward the player
 const YAW = -0.3; // slight angle so it doesn't sit perfectly square
 const SPIN_SPEED = 3.5; // rad/s ≈ 33 rpm
 
-// Local-space spin axis of the disc, measured from the GLB's vertex data.
-// The disc mesh (material "cd.002") is centered here, not at its node
-// origin, so the geometry gets re-pivoted once to spin in place.
-const DISC_CENTER_X = 0.395;
-const DISC_CENTER_Z = -0.132;
+// The Pioneer model's spinning platter is the mesh with this material; we
+// locate it at runtime to sit the record on top, rather than hardcoding a
+// measured position (which is brittle when the model changes).
+const PLATTER_MATERIAL = 'plastic';
+
+// The record disc covers most of the platter. Multiplier of the platter's
+// diameter so the vinyl reads as a record sitting on (just inside) it.
+const RECORD_COVERAGE = 0.92;
 
 export default function VinylPlayer() {
-  const { scene } = useGLTF('/vinyl_player_optimized.glb');
+  const { scene } = useGLTF('/vinyl_player_pioneer.glb');
+  const { scene: recordScene } = useGLTF('/vinyl_record.glb');
   const { playing, toggle } = useMusic();
   const speed = useRef(0);
-  const discRef = useRef<THREE.Mesh | null>(null);
+  const discRef = useRef<THREE.Object3D | null>(null);
 
-  useMemo(() => {
-    // Same normalization pattern as the other models: reset first so the
-    // cached scene survives StrictMode double-runs, then scale and sit it
-    // on the table top.
+  const record = useMemo(() => {
+    // Place the Pioneer body: reset first (useGLTF caches the scene and
+    // StrictMode runs this twice), scale to a known width, and sit it on the
+    // table top, same normalization as the other props.
     scene.rotation.set(0, YAW, 0);
     scene.position.set(0, 0, 0);
     scene.scale.setScalar(1);
@@ -45,22 +49,43 @@ export default function VinylPlayer() {
       SCREENS_BOTTOM_Y - box.min.y * scale,
       POSITION_Z - center.z * scale
     );
+    scene.updateMatrixWorld(true);
 
-    // Re-pivot the disc so rotating its node spins it around its own axis.
+    // Find the platter and measure where its top surface is, in world space.
+    let platter: THREE.Mesh | null = null;
     scene.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
-      if (!mesh.isMesh) return;
-      if ((mesh.material as THREE.Material).name !== 'cd.002') return;
-      if (!mesh.userData.pivoted) {
-        mesh.geometry.translate(-DISC_CENTER_X, 0, -DISC_CENTER_Z);
-        mesh.position.set(DISC_CENTER_X, 0, DISC_CENTER_Z);
-        mesh.userData.pivoted = true;
+      if (mesh.isMesh && (mesh.material as THREE.Material).name === PLATTER_MATERIAL) {
+        platter = mesh;
       }
-      discRef.current = mesh;
     });
-  }, [scene]);
+    if (!platter) return null;
 
-  // Ease the platter up to speed / down to a stop instead of snapping.
+    const pBox = new THREE.Box3().setFromObject(platter);
+    const pCenter = pBox.getCenter(new THREE.Vector3());
+    const platterDiameter = pBox.max.x - pBox.min.x;
+
+    // Size the record to the platter and lay it flat. The record's geometry
+    // lies in its local XY plane (Z is its thin axis), so rotating it -90°
+    // about X makes it horizontal, and then spinning it about Y turns it like
+    // a record. Because the disc is centered at its own origin, a plain
+    // rotation spins it in place — no re-pivoting needed.
+    const recBox = new THREE.Box3().setFromObject(recordScene);
+    const recDiameter = recBox.getSize(new THREE.Vector3()).x;
+    const recScale = (platterDiameter * RECORD_COVERAGE) / recDiameter;
+
+    recordScene.scale.setScalar(recScale);
+    recordScene.rotation.set(-Math.PI / 2, 0, 0);
+    // Sit it just above the platter top so it doesn't z-fight the surface.
+    recordScene.position.set(pCenter.x, pBox.max.y + 0.005, pCenter.z);
+    recordScene.updateMatrixWorld(true);
+
+    discRef.current = recordScene;
+    return recordScene;
+  }, [scene, recordScene]);
+
+  // Ease the record up to speed / down to a stop instead of snapping. The
+  // disc lies flat, so it spins about the world Y axis.
   useFrame((_, delta) => {
     const target = playing ? SPIN_SPEED : 0;
     speed.current += (target - speed.current) * (1 - Math.exp(-3 * delta));
@@ -75,13 +100,16 @@ export default function VinylPlayer() {
   };
 
   return (
-    <primitive
-      object={scene}
+    <group
       onClick={onClick}
       onPointerOver={() => (document.body.style.cursor = 'pointer')}
       onPointerOut={() => (document.body.style.cursor = 'auto')}
-    />
+    >
+      <primitive object={scene} />
+      {record && <primitive object={record} />}
+    </group>
   );
 }
 
-useGLTF.preload('/vinyl_player_optimized.glb');
+useGLTF.preload('/vinyl_player_pioneer.glb');
+useGLTF.preload('/vinyl_record.glb');
