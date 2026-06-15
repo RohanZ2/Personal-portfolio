@@ -27,7 +27,7 @@ const RECORD_COVERAGE = 0.92;
 
 export default function VinylPlayer() {
   const { scene } = useGLTF('/vinyl_player_pioneer.glb');
-  const { scene: recordSrc } = useGLTF('/vinyl_record.glb');
+  const { scene: recordSrc } = useGLTF('/12_vinyl_record.glb');
   const { playing, toggle } = useMusic();
   const speed = useRef(0);
   const discRef = useRef<THREE.Object3D | null>(null);
@@ -80,37 +80,62 @@ export default function VinylPlayer() {
     recordScene.scale.setScalar(1);
     recordScene.updateMatrixWorld(true);
 
-    // Size the record to the platter (measured in its reset state).
-    const recBox = new THREE.Box3().setFromObject(recordScene);
-    const recDiameter = recBox.getSize(new THREE.Vector3()).x;
-    const recScale = (platterDiameter * RECORD_COVERAGE) / recDiameter;
-    recordScene.scale.setScalar(recScale);
+    // Lay the disc flat in a model-agnostic way. A record's bounding box is
+    // thin on one axis (its face normal); whichever that is, rotate it onto
+    // the world Y axis so the disc sits flat on the platter. This avoids
+    // hardcoding an orientation that differs from one record GLB to the next.
+    const recBox0 = new THREE.Box3().setFromObject(recordScene);
+    const recSize = recBox0.getSize(new THREE.Vector3());
+    const thin = Math.min(recSize.x, recSize.y, recSize.z);
+    if (thin === recSize.z) recordScene.rotation.x = -Math.PI / 2; // face is XY -> tip up
+    else if (thin === recSize.x) recordScene.rotation.z = Math.PI / 2; // face is YZ
+    // (thin === y already means the disc lies flat in XZ; no rotation needed)
+    recordScene.updateMatrixWorld(true);
 
-    // Separate "lay it flat" from "spin it" with a holder group, so the two
-    // never fight as Euler angles. The record disc lives in its local XY
-    // plane, so its spin axis is its own local Z. The holder is tipped -90°
-    // about X to lay that disc flat and is positioned on the platter; the
-    // record then only ever rotates about Z, which — once the holder has it
-    // flat — is a clean spin-in-place around the vertical axis.
+    // Size the record to the platter, measured by its on-table footprint (the
+    // two non-vertical extents) after it's been laid flat.
+    const recBox = new THREE.Box3().setFromObject(recordScene);
+    const recFootprint = Math.max(
+      recBox.max.x - recBox.min.x,
+      recBox.max.z - recBox.min.z
+    );
+    const recScale = (platterDiameter * RECORD_COVERAGE) / recFootprint;
+    recordScene.scale.setScalar(recScale);
+    recordScene.updateMatrixWorld(true);
+
+    // Recenter the disc's own bbox onto its origin so it spins about its
+    // center, not an off-origin pivot (handles discs modeled off-center).
+    const recCenter = new THREE.Box3()
+      .setFromObject(recordScene)
+      .getCenter(new THREE.Vector3());
+    recordScene.position.set(-recCenter.x, -recCenter.y, -recCenter.z);
+    recordScene.updateMatrixWorld(true);
+
+    // Two nested groups keep "lay flat" and "spin" from fighting as Euler
+    // angles (the bug that made an earlier disc tumble): the disc carries
+    // whatever tilt was needed to lie flat; the SPINNER wrapping it is
+    // unrotated and only ever turns about world Y — a clean flat spin. The
+    // outer holder just parks the whole thing on the platter spindle.
+    const spinner = new THREE.Group();
+    spinner.add(recordScene);
+
     const holder = new THREE.Group();
-    holder.rotation.set(-Math.PI / 2, 0, 0);
-    // Just above the platter top so it doesn't z-fight the surface.
     holder.position.set(pCenter.x, pBox.max.y + 0.005, pCenter.z);
-    holder.add(recordScene);
+    holder.add(spinner);
     holder.updateMatrixWorld(true);
 
-    discRef.current = recordScene;
+    discRef.current = spinner;
     return holder;
   }, [scene, recordScene]);
 
   // Ease the record up to speed / down to a stop instead of snapping. The
-  // disc spins about its own local Z (its face normal); the holder group
-  // has already tipped that to vertical, so it reads as a flat spin.
+  // spinner group is unrotated and lies flat, so turning it about Y reads as
+  // the record spinning in place.
   useFrame((_, delta) => {
     const target = playing ? SPIN_SPEED : 0;
     speed.current += (target - speed.current) * (1 - Math.exp(-3 * delta));
     if (discRef.current) {
-      discRef.current.rotation.z += speed.current * delta;
+      discRef.current.rotation.y += speed.current * delta;
     }
   });
 
