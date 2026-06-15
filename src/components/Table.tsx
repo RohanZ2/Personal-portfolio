@@ -14,10 +14,33 @@ const TABLE_WIDTH = 7;
 // enough for interactive props to be placed on it later.
 const TABLE_FRONT_Z = 4.5;
 
+// The office_desk.glb model ships fully dressed — monitor, chair, papers, a
+// cable, keyboard and mouse — each on its own material. We only want the bare
+// desk, which is the one with this material; everything else is hidden so the
+// scene's own props (screens, vinyl, keyboards) sit on a clean surface.
+const DESK_MATERIAL = 'wire_127127127';
+
 export default function Table() {
-  const { scene } = useGLTF('/simple_table_low_poly.glb');
+  const { scene } = useGLTF('/office_desk.glb');
 
   useMemo(() => {
+    // Strip every mesh that isn't the bare desk. We remove them outright (not
+    // just toggle .visible) because Box3.setFromObject still includes
+    // invisible meshes, which would skew the scale/placement below. The
+    // userData guard keeps this idempotent under useGLTF's cache + StrictMode's
+    // double-run.
+    if (!scene.userData.declutered) {
+      const drop: THREE.Object3D[] = [];
+      scene.traverse((obj) => {
+        const mesh = obj as THREE.Mesh;
+        if (mesh.isMesh && (mesh.material as THREE.Material).name !== DESK_MATERIAL) {
+          drop.push(mesh);
+        }
+      });
+      drop.forEach((m) => m.removeFromParent());
+      scene.userData.declutered = true;
+    }
+
     // useGLTF caches the scene object and StrictMode runs this twice, so
     // reset the transform first to keep the math idempotent.
     scene.rotation.set(0, 0, 0);
@@ -51,4 +74,4 @@ export default function Table() {
   return <primitive object={scene} />;
 }
 
-useGLTF.preload('/simple_table_low_poly.glb');
+useGLTF.preload('/office_desk.glb');
