@@ -1,8 +1,8 @@
 'use client';
 
 import { Suspense, useEffect, useRef } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { AdaptiveDpr, useGLTF } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import ComputerScreens from './ComputerScreens';
 import Table from './Table';
@@ -87,33 +87,6 @@ function CameraRig() {
   return null;
 }
 
-// While the user is sweeping the mouse to look around, briefly tell R3F the
-// scene is "regressing" so AdaptiveDpr drops the render resolution. The view
-// is in motion then, so the lower resolution is hard to notice, but the
-// reduced pixel count keeps the look-around smooth on weaker GPUs. When the
-// mouse stops, performance.current eases back to 1 and full resolution
-// returns. Throttled with a rAF flag so a flood of pointer events doesn't
-// thrash the store.
-function MovementRegression() {
-  const regress = useThree((s) => s.performance.regress);
-
-  useEffect(() => {
-    let queued = false;
-    const onMove = () => {
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(() => {
-        regress();
-        queued = false;
-      });
-    };
-    window.addEventListener('pointermove', onMove);
-    return () => window.removeEventListener('pointermove', onMove);
-  }, [regress]);
-
-  return null;
-}
-
 // "EXPAND" tag that rides beside the cursor while a screen is hovered.
 // Position is written straight to the DOM from the pointermove handler so
 // it tracks the mouse without a React render per frame.
@@ -184,8 +157,6 @@ export default function Scene() {
         // plenty sharp. powerPreference asks for the discrete GPU.
         dpr={[1, 2]}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
-        // Let AdaptiveDpr scale resolution down to half during movement.
-        performance={{ min: 0.5 }}
         onPointerMissed={unfocusScreen}
       >
         <color attach="background" args={['#050807']} />
@@ -203,10 +174,6 @@ export default function Scene() {
           </Suspense>
         </MusicProvider>
         <CameraRig />
-        <MovementRegression />
-        {/* Drops render resolution while performance.regress() is active
-            (i.e. during look-around), then restores it when the view settles. */}
-        <AdaptiveDpr pixelated={false} />
       </Canvas>
       <ExpandHint />
       <FocusOverlay />
