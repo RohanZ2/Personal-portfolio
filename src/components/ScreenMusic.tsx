@@ -126,7 +126,13 @@ export default function ScreenMusic({
 
   useEffect(() => () => texture.dispose(), [texture]);
 
+  const lastDraw = useRef(0);
+
+  // Redraw at ~20fps rather than every frame. The EQ bars still read as
+  // animated, but we avoid re-uploading the 512px texture 60x/sec.
   useFrame(({ clock }) => {
+    if (clock.elapsedTime - lastDraw.current < 1 / 20) return;
+    lastDraw.current = clock.elapsedTime;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const audio = audioRef.current;

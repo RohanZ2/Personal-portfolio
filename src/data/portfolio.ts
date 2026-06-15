@@ -4,8 +4,6 @@ export interface Project {
   tech: string[];
   link: string;
   volume: string;
-  speed: number;
-  image?: string;
 }
 
 export const projects: Project[] = [
@@ -15,7 +13,6 @@ export const projects: Project[] = [
     tech: ['React', 'Tailwind CSS', 'Node.js'],
     link: 'https://github.com',
     volume: 'Vol. 01',
-    speed: 33,
   },
   {
     title: 'Cyber Synth',
@@ -23,7 +20,6 @@ export const projects: Project[] = [
     tech: ['Next.js', 'TypeScript', 'MongoDB'],
     link: 'https://github.com',
     volume: 'Vol. 02',
-    speed: 45,
   },
   {
     title: 'Echo Chamber',
@@ -31,7 +27,6 @@ export const projects: Project[] = [
     tech: ['React Native', 'Firebase', 'Stripe'],
     link: 'https://github.com',
     volume: 'Vol. 03',
-    speed: 78,
   },
 ];
 
@@ -46,14 +41,4 @@ export const skills = [
 export const bio = [
   'I am a full stack software engineer specializing in building immersive, rich digital experiences. Bridging high-fidelity design with robust backend telemetry.',
   'My philosophy is built on technical excellence, rich visual micro-interactions, and modular architecture.',
-];
-
-export const bootLog = [
-  '> BOOTING KERNEL... OK',
-  '> ALLOCATING MEMORY... OK',
-  '> MOUNTING AUDIO_DRIVES... OK',
-  '> LOADING PORTFOLIO_MODULES... OK',
-  '> CALIBRATING TURNTABLE... OK',
-  '> WARNING: SIGNAL NOISE DETECTED IN CH-03',
-  '> READY.',
 ];

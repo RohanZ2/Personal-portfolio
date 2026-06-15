@@ -4,3 +4,7 @@ node_modules/
 .DS_Store
 .env.local
 .env.*.local
+
+# GLB backups (regenerate via gltf-transform) and build info
+.glb-originals/
+tsconfig.tsbuildinfo

@@ -110,9 +110,15 @@ export default function ScreenHello({ rect }: { rect: ScreenRect }) {
   useEffect(() => () => texture.dispose(), [texture]);
 
   const start = useRef<number | null>(null);
+  const lastDraw = useRef(0);
 
+  // Redraw the CRT canvas at ~15fps, not every render frame. The content is a
+  // blinking cursor and a slow type-on — indistinguishable at 15fps — but
+  // re-uploading a 512px texture 60x/sec is real GPU work we don't need.
   useFrame(({ clock }) => {
     if (start.current === null) start.current = clock.elapsedTime;
+    if (clock.elapsedTime - lastDraw.current < 1 / 15) return;
+    lastDraw.current = clock.elapsedTime;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     drawScreen(ctx, canvas.width, canvas.height, clock.elapsedTime - start.current);
