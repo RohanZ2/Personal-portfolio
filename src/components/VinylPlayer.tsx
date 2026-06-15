@@ -65,32 +65,37 @@ export default function VinylPlayer() {
     const pCenter = pBox.getCenter(new THREE.Vector3());
     const platterDiameter = pBox.max.x - pBox.min.x;
 
-    // Size the record to the platter and lay it flat. The record's geometry
-    // lies in its local XY plane (Z is its thin axis), so rotating it -90°
-    // about X makes it horizontal, and then spinning it about Y turns it like
-    // a record. Because the disc is centered at its own origin, a plain
-    // rotation spins it in place — no re-pivoting needed.
+    // Size the record to the platter.
     const recBox = new THREE.Box3().setFromObject(recordScene);
     const recDiameter = recBox.getSize(new THREE.Vector3()).x;
     const recScale = (platterDiameter * RECORD_COVERAGE) / recDiameter;
-
     recordScene.scale.setScalar(recScale);
-    recordScene.rotation.set(-Math.PI / 2, 0, 0);
-    // Sit it just above the platter top so it doesn't z-fight the surface.
-    recordScene.position.set(pCenter.x, pBox.max.y + 0.005, pCenter.z);
-    recordScene.updateMatrixWorld(true);
+
+    // Separate "lay it flat" from "spin it" with a holder group, so the two
+    // never fight as Euler angles. The record disc lives in its local XY
+    // plane, so its spin axis is its own local Z. The holder is tipped -90°
+    // about X to lay that disc flat and is positioned on the platter; the
+    // record then only ever rotates about Z, which — once the holder has it
+    // flat — is a clean spin-in-place around the vertical axis.
+    const holder = new THREE.Group();
+    holder.rotation.set(-Math.PI / 2, 0, 0);
+    // Just above the platter top so it doesn't z-fight the surface.
+    holder.position.set(pCenter.x, pBox.max.y + 0.005, pCenter.z);
+    holder.add(recordScene);
+    holder.updateMatrixWorld(true);
 
     discRef.current = recordScene;
-    return recordScene;
+    return holder;
   }, [scene, recordScene]);
 
   // Ease the record up to speed / down to a stop instead of snapping. The
-  // disc lies flat, so it spins about the world Y axis.
+  // disc spins about its own local Z (its face normal); the holder group
+  // has already tipped that to vertical, so it reads as a flat spin.
   useFrame((_, delta) => {
     const target = playing ? SPIN_SPEED : 0;
     speed.current += (target - speed.current) * (1 - Math.exp(-3 * delta));
     if (discRef.current) {
-      discRef.current.rotation.y += speed.current * delta;
+      discRef.current.rotation.z += speed.current * delta;
     }
   });
 
