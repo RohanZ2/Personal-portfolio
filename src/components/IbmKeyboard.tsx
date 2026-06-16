@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { placeOnTable } from './placeOnTable';
-import { Const } from 'three/tsl';
 
 export default function IbmKeyboard() {
   const { scene } = useGLTF('/ibm_model_m_keyboard.glb');

@@ -21,17 +21,11 @@ const DISC_LIGHT_HEIGHT = 1.4; // world units above the disc
 const DISC_LIGHT_INTENSITY = 32;
 const DISC_LIGHT_COLOR = '#fff4e0'; // warm white, like a desk lamp
 
-// Local-space spin axis of the disc, measured from the GLB's vertex data.
-// The disc mesh (material "cd.002") is centered here, not at its node
-// origin, so the geometry gets re-pivoted once to spin in place.
-const DISC_CENTER_X = 0.395;
-const DISC_CENTER_Z = -0.132;
-
 export default function VinylPlayer() {
   const { scene } = useGLTF('/vinyl_player_optimized.glb');
   const { playing, toggle } = useMusic();
   const speed = useRef(0);
-  const discRef = useRef<THREE.Mesh | null>(null);
+  const discRef = useRef<THREE.Object3D | null>(null);
 
   const discLightPos = useMemo(() => {
     // Same normalization pattern as the other models: reset first so the
@@ -53,30 +47,50 @@ export default function VinylPlayer() {
       SCREENS_BOTTOM_Y - box.min.y * scale,
       POSITION_Z - center.z * scale
     );
+    scene.updateMatrixWorld(true);
 
-    // Re-pivot the disc so rotating its node spins it around its own axis.
+    // Make the disc spin in place. Rather than mutate the shared cached
+    // geometry (the old re-pivot was fragile — it compounded across remounts
+    // and StrictMode runs, which is what buried the disc at desk level), wrap
+    // the disc mesh in a pivot Group centered on the disc's own world center.
+    // Spinning the group then turns the disc about its true axis, and the
+    // disc keeps its original position on the platter.
     scene.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
       if (!mesh.isMesh) return;
       if ((mesh.material as THREE.Material).name !== 'cd.002') return;
-      if (!mesh.userData.pivoted) {
-        mesh.geometry.translate(-DISC_CENTER_X, 0, -DISC_CENTER_Z);
-        mesh.position.set(DISC_CENTER_X, 0, DISC_CENTER_Z);
-        mesh.userData.pivoted = true;
+      if (mesh.userData.wrapped) {
+        discRef.current = mesh.parent; // the pivot group from a prior run
+        return;
       }
-      // The disc material is almost black, so even a good light barely shows.
-      // Lift it to a dark grey and make it less glossy so the surface (and the
-      // label/grooves spinning by) actually catches the light. Clone first so
-      // we don't mutate the shared GLTF cache.
-      if (!mesh.userData.brightened) {
-        const mat = (mesh.material as THREE.MeshStandardMaterial).clone();
-        mat.color.multiplyScalar(2.6); // lift the near-black base toward grey
-        mat.emissive = new THREE.Color('#141414'); // faint self-lighting
-        if ('roughness' in mat) mat.roughness = Math.min(1, (mat.roughness ?? 0.5) + 0.15);
-        mesh.material = mat;
-        mesh.userData.brightened = true;
-      }
-      discRef.current = mesh;
+
+      // World center of the disc (where its spin axis passes through).
+      const discCenter = new THREE.Box3()
+        .setFromObject(mesh)
+        .getCenter(new THREE.Vector3());
+
+      const parent = mesh.parent!;
+      const pivot = new THREE.Group();
+      // Place the pivot at the disc center (in the parent's local space) so
+      // the mesh, offset back by the same amount, ends up exactly where it
+      // started — but now rotating the pivot spins the disc about its center.
+      const localCenter = parent.worldToLocal(discCenter.clone());
+      pivot.position.copy(localCenter);
+      parent.add(pivot);
+      pivot.add(mesh);
+      mesh.position.sub(localCenter);
+
+      // Lift the near-black disc material toward grey + faint self-lighting so
+      // its surface (and the grooves spinning by) actually catches light.
+      // Clone first so we don't mutate the shared GLTF cache.
+      const mat = (mesh.material as THREE.MeshStandardMaterial).clone();
+      mat.color.multiplyScalar(2.6);
+      mat.emissive = new THREE.Color('#141414');
+      if ('roughness' in mat) mat.roughness = Math.min(1, (mat.roughness ?? 0.5) + 0.15);
+      mesh.material = mat;
+
+      mesh.userData.wrapped = true;
+      discRef.current = pivot;
     });
 
     // World position just above the disc, for the dedicated platter light.
