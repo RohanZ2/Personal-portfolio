@@ -29,7 +29,10 @@ const MusicContext = createContext<MusicState | null>(null);
 // the 3D tree.
 export function MusicProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [playing, setPlaying] = useState(true);
+  // Start paused: nothing plays until the user clicks the vinyl/music screen.
+  // This also sidesteps the browser autoplay block, which would otherwise
+  // leave the disc spinning silently on first load.
+  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     const audio = new Audio(AUDIO_SRC);
