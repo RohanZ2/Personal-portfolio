@@ -1,8 +1,8 @@
 'use client';
 
-import { Suspense, useEffect, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useGLTF, PerformanceMonitor, AdaptiveDpr } from '@react-three/drei';
 import * as THREE from 'three';
 import ComputerScreens from './ComputerScreens';
 import Table from './Table';
@@ -37,6 +37,12 @@ function CameraRig() {
   const mouse = useRef({ x: 0, y: 0 });
   const targetPos = useRef(HOME_POS.clone());
   const { focused } = useScreenFocus();
+  // regress() flags the scene as "moving" so AdaptiveDpr temporarily drops the
+  // render resolution. We call it only while the camera is actually in motion
+  // (mouse-look or a focus dolly), which is exactly when low-end GPUs choke —
+  // the lower resolution keeps the movement smooth and snaps back to full
+  // sharpness the instant the view settles.
+  const regress = useThree((s) => s.performance.regress);
 
   // Track the mouse on window, not via r3f's canvas pointer: the portfolio
   // screens are DOM overlays, and when the cursor crossed them the canvas
@@ -76,12 +82,25 @@ function CameraRig() {
     }
 
     const t = 1 - Math.exp(-4 * delta);
+    const prevYaw = yaw.current;
+    const prevPitch = pitch.current;
     yaw.current += (targetYaw - yaw.current) * t;
     pitch.current += (targetPitch - pitch.current) * t;
 
     camera.position.lerp(targetPos.current, t);
     camera.rotation.order = 'YXZ';
     camera.rotation.set(pitch.current, yaw.current, 0);
+
+    // Regress (drop resolution) only while the view is perceptibly moving —
+    // measured by how far the camera actually rotated/dollied this frame. The
+    // threshold is deliberately a little coarse so the imperceptible tail of
+    // the ease counts as "settled", letting full DPR snap back promptly once
+    // you stop instead of lingering blurry.
+    const moved =
+      Math.abs(yaw.current - prevYaw) > 6e-4 ||
+      Math.abs(pitch.current - prevPitch) > 6e-4 ||
+      camera.position.distanceToSquared(targetPos.current) > 1e-3;
+    if (moved) regress();
   });
 
   return null;
@@ -148,15 +167,25 @@ function FocusOverlay() {
 }
 
 export default function Scene() {
+  // Upper bound for the device pixel ratio. PerformanceMonitor lowers this on
+  // machines that can't sustain a good frame rate, so weak GPUs render fewer
+  // pixels (smoother) while capable ones stay sharp. AdaptiveDpr then applies
+  // this ceiling — and the per-frame movement regression — to the live DPR.
+  const [dprMax, setDprMax] = useState(2);
+
   return (
     <div className="fixed inset-0">
       <Canvas
         camera={{ position: [0, 0, 7], fov: 45 }}
-        // Clamp the device pixel ratio: uncapped, a 3x-DPI display renders ~9x
-        // the pixels, which is the single biggest source of lag here. 2 is
-        // plenty sharp. powerPreference asks for the discrete GPU.
-        dpr={[1, 2]}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        dpr={[1, dprMax]}
+        gl={{
+          // MSAA (antialias) is one of the heaviest per-frame costs on weak /
+          // integrated GPUs and the main source of the low-end lag. Turn it
+          // off; AdaptiveDpr keeps capable machines sharp via resolution
+          // instead. powerPreference asks for the discrete GPU when present.
+          antialias: false,
+          powerPreference: 'high-performance',
+        }}
         // Measure the canvas size synchronously instead of after the default
         // debounce. Combined with keying the <Html> screens on this size, it
         // stops the prod-only race where the HTML monitor content projected
@@ -169,6 +198,16 @@ export default function Scene() {
         <directionalLight position={[0, 3, 8]} intensity={1.6} />
         <pointLight position={[-4, 2, 3]} intensity={6} color="#00ff9d" />
         <pointLight position={[4, -2, 3]} intensity={6} color="#ff2975" />
+        {/* Watch the frame rate: if it sags on weaker hardware, step the DPR
+            ceiling down (smoother); raise it again when there's headroom. */}
+        <PerformanceMonitor
+          onDecline={() => setDprMax((d) => Math.max(1, d - 0.5))}
+          onIncline={() => setDprMax((d) => Math.min(2, d + 0.5))}
+        />
+        {/* Applies the DPR ceiling above, and drops resolution further during
+            camera movement (CameraRig calls regress()), then restores it when
+            the view settles. This is what makes the look-around feel smooth. */}
+        <AdaptiveDpr pixelated={false} />
         <MusicProvider>
           <Suspense fallback={null}>
             <ComputerScreens />
