@@ -7,6 +7,7 @@ import ScreenHello, { ScreenRect } from './ScreenHello';
 import ScreenMusic from './ScreenMusic';
 import ScreenPortfolio from './ScreenPortfolio';
 import ScreenHotspot from './ScreenHotspot';
+import ScreenBootCover from './ScreenBootCover';
 import { ScreenId } from './screenFocusStore';
 
 // The imaginary wall sits on this Z plane. The back of the monitor bank is
@@ -109,6 +110,12 @@ export default function ComputerScreens() {
           <ScreenPortfolio id="topRight" rect={screens.topRight} page="projects" />
           <ScreenHello rect={screens.bottomLeft} />
           <ScreenMusic id="bottomRight" rect={screens.bottomRight} />
+          {/* The two top screens are drei <Html> (DOM), so they can't draw the
+              canvas boot intro themselves. A boot-cover plays the CRT power-on
+              over each, then removes itself to reveal the content. The bottom
+              two canvas screens run the intro inline. */}
+          <ScreenBootCover rect={screens.topLeft} />
+          <ScreenBootCover rect={screens.topRight} />
           {(Object.keys(screens) as ScreenId[]).map((id) => (
             <ScreenHotspot key={id} id={id} rect={screens[id]} />
           ))}

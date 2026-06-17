@@ -7,6 +7,8 @@ import { ScreenRect } from './ScreenHello';
 import { ScreenId, useScreenFocus } from './screenFocusStore';
 import { BASE, NEON, NEON_CYCLE } from './screenTheme';
 import { useMusic, TRACK_TITLE } from './MusicContext';
+import { drawIntro } from './drawIntro';
+import { introElapsed } from './introSequence';
 
 const CANVAS_W = 512;
 
@@ -129,12 +131,18 @@ export default function ScreenMusic({
   const lastDraw = useRef(0);
 
   // Redraw at ~20fps rather than every frame. The EQ bars still read as
-  // animated, but we avoid re-uploading the 512px texture 60x/sec.
+  // animated, but we avoid re-uploading the 512px texture 60x/sec. Plays the
+  // shared boot intro first (in sync with the other screens), then reveals the
+  // music UI.
   useFrame(({ clock }) => {
     if (clock.elapsedTime - lastDraw.current < 1 / 20) return;
     lastDraw.current = clock.elapsedTime;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    if (drawIntro(ctx, canvas.width, canvas.height, introElapsed(clock.elapsedTime))) {
+      texture.needsUpdate = true;
+      return;
+    }
     const audio = audioRef.current;
     drawMusic(
       ctx,

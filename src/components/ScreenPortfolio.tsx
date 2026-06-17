@@ -5,6 +5,7 @@ import { useThree } from '@react-three/fiber';
 import { ScreenRect } from './ScreenHello';
 import { ScreenId, useScreenFocus } from './screenFocusStore';
 import { BASE, NEON, NEON_CYCLE, glow } from './screenTheme';
+import { useIntroDone } from './introSequence';
 import { bio, projects, skills } from '../data/portfolio';
 
 // CSS pixel width of the embedded UI; height follows the glass aspect.
@@ -171,6 +172,14 @@ export default function ScreenPortfolio({
   // rect. (Locally this never triggered because everything loads instantly.)
   const { width: cw, height: ch } = useThree((s) => s.size);
 
+  // Hide this DOM content until the boot intro finishes. The intro is drawn by
+  // a WebGL boot-cover in front of the glass, but DOM <Html> always stacks on
+  // top of the canvas — so if the content rendered during boot it would show
+  // straight through the cover. Gating it here lets the cover play, then the
+  // content fades in. (Skip the fade if the intro is already done, e.g. on a
+  // hot reload, so it doesn't re-animate.)
+  const introDone = useIntroDone();
+
   return (
     <group position={rect.center}>
       <Html
@@ -186,6 +195,8 @@ export default function ScreenPortfolio({
           className="relative h-full w-full"
           style={{
             background: `radial-gradient(ellipse at center, ${BASE.panel} 0%, ${BASE.black} 100%)`,
+            opacity: introDone ? 1 : 0,
+            transition: 'opacity 0.35s ease-in',
           }}
         >
           {page === 'about' ? <AboutPage /> : <ProjectsPage />}
