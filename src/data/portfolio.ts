@@ -2,31 +2,79 @@ export interface Project {
   title: string;
   description: string;
   tech: string[];
+  /** Source / repo link (the SOURCE button). */
   link: string;
-  volume: string;
+  /** Live or demo target (the LIVE/DEMO button). Omit if there isn't one. */
+  liveLink?: string;
+  status: 'DEPLOYED' | 'DEMO';
+  /** Sequential build label shown on the card, e.g. "SPEC-01". */
+  spec: string;
+  /** Thumbnail path under /public, e.g. "/projects/sliceiq.png". A styled
+   *  placeholder is shown when this is omitted. */
+  image?: string;
 }
 
+// NOTE: descriptions, tech, links, status and images below are placeholders —
+// edit these with the real details. Drop screenshots into /public/projects/
+// and set the matching `image` field to replace the placeholder panels.
 export const projects: Project[] = [
   {
-    title: 'Techno Logic',
-    description: 'A stunning responsive web application built with React, Next.js, and styled using Tailwind CSS utilities. Integrated with full database telemetry.',
-    tech: ['React', 'Tailwind CSS', 'Node.js'],
+    title: 'SliceIQ',
+    description: 'TODO: short description of SliceIQ.',
+    tech: ['TODO'],
     link: 'https://github.com',
-    volume: 'Vol. 01',
+    liveLink: 'https://example.com',
+    status: 'DEPLOYED',
+    spec: 'SPEC-01',
+    // image: '/projects/sliceiq.png',
   },
   {
-    title: 'Cyber Synth',
-    description: 'Real-time collaborative audio sequencer and visualizer incorporating WebSockets, Framer Motion transitions, and state sync across nodes.',
-    tech: ['Next.js', 'TypeScript', 'MongoDB'],
+    title: 'Personal Portfolio',
+    description: 'TODO: short description of this 3D portfolio.',
+    tech: ['Next.js', 'React Three Fiber', 'TypeScript'],
     link: 'https://github.com',
-    volume: 'Vol. 02',
+    liveLink: 'https://example.com',
+    status: 'DEPLOYED',
+    spec: 'SPEC-02',
+    // image: '/projects/portfolio.png',
   },
   {
-    title: 'Echo Chamber',
-    description: 'Mobile-first e-commerce checkout telemetry platform with Stripe payment processor integration, Firebase authentication, and analytics.',
-    tech: ['React Native', 'Firebase', 'Stripe'],
+    title: 'Steam-IC',
+    description: 'TODO: short description of Steam-IC.',
+    tech: ['TODO'],
     link: 'https://github.com',
-    volume: 'Vol. 03',
+    status: 'DEMO',
+    spec: 'SPEC-03',
+    // image: '/projects/steam-ic.png',
+  },
+  {
+    title: 'Platform Game',
+    description: 'TODO: short description of the platform game.',
+    tech: ['TODO'],
+    link: 'https://github.com',
+    status: 'DEMO',
+    spec: 'SPEC-04',
+    // image: '/projects/platform-game.png',
+  },
+  {
+    title: 'MoveMaster',
+    description: 'TODO: short description of MoveMaster.',
+    tech: ['Python', 'OpenCV', 'React'],
+    link: 'https://github.com',
+    liveLink: 'https://example.com',
+    status: 'DEMO',
+    spec: 'SPEC-05',
+    // image: '/projects/movemaster.png',
+  },
+  {
+    title: 'FormFlux',
+    description: 'TODO: short description of FormFlux.',
+    tech: ['React', 'Node.js', 'ML'],
+    link: 'https://github.com',
+    liveLink: 'https://example.com',
+    status: 'DEPLOYED',
+    spec: 'SPEC-06',
+    // image: '/projects/formflux.png',
   },
 ];
 
