@@ -1,6 +1,7 @@
 'use client';
 
 import { Html } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
 import { ScreenRect } from './ScreenHello';
 import { ScreenId, useScreenFocus } from './screenFocusStore';
 import { BASE, NEON, NEON_CYCLE, glow } from './screenTheme';
@@ -161,9 +162,19 @@ export default function ScreenPortfolio({
   // (this is what caused the look-around jitter near the top screens).
   const focused = useScreenFocus().focused?.id === id;
 
+  // <Html transform> bakes its CSS matrix3d from the canvas's measured size on
+  // the frame it mounts. On Vercel the bundle hydrates before layout settles,
+  // so the first measurement can be a stale/zero-sized rect — which pins the
+  // content off the glass (down-left) and never recovers. Keying the <Html>
+  // on the live canvas size forces a clean remount once the size is known and
+  // again on any resize, so the transform is always computed against a real
+  // rect. (Locally this never triggered because everything loads instantly.)
+  const { width: cw, height: ch } = useThree((s) => s.size);
+
   return (
     <group position={rect.center}>
       <Html
+        key={`${Math.round(cw)}x${Math.round(ch)}`}
         transform
         scale={scale}
         zIndexRange={[40, 0]}

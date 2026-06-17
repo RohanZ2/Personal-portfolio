@@ -157,6 +157,11 @@ export default function Scene() {
         // plenty sharp. powerPreference asks for the discrete GPU.
         dpr={[1, 2]}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
+        // Measure the canvas size synchronously instead of after the default
+        // debounce. Combined with keying the <Html> screens on this size, it
+        // stops the prod-only race where the HTML monitor content projected
+        // against a not-yet-settled canvas rect and floated off the glass.
+        resize={{ scroll: false, debounce: 0 }}
         onPointerMissed={unfocusScreen}
       >
         <color attach="background" args={['#050807']} />
