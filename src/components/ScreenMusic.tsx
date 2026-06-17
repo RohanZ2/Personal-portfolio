@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { ScreenRect } from './ScreenHello';
 import { ScreenId, useScreenFocus } from './screenFocusStore';
 import { BASE, NEON, NEON_CYCLE } from './screenTheme';
-import { useMusic, TRACK_TITLE } from './MusicContext';
+import { useMusic } from './MusicContext';
 import { drawIntro } from './drawIntro';
 import { introElapsed } from './introSequence';
 
@@ -26,7 +26,8 @@ function drawMusic(
   t: number,
   playing: boolean,
   currentTime: number,
-  duration: number
+  duration: number,
+  title: string
 ) {
   // Dark grey CRT glass with a vignette.
   ctx.shadowBlur = 0;
@@ -50,7 +51,7 @@ function drawMusic(
   ctx.shadowBlur = 14;
   ctx.shadowColor = NEON.yellow;
   ctx.fillStyle = NEON.yellow;
-  ctx.fillText(TRACK_TITLE, w * 0.08, h * 0.34);
+  ctx.fillText(title, w * 0.08, h * 0.34);
 
   // Animated EQ bars (settle low when paused) — each bar its own neon.
   const bars = 24;
@@ -107,7 +108,7 @@ export default function ScreenMusic({
   id: ScreenId;
   rect: ScreenRect;
 }) {
-  const { audioRef, playing, toggle } = useMusic();
+  const { audioRef, playing, toggle, track } = useMusic();
   // While zoomed out, clicks mean "expand" and are caught by the hotspot in
   // front of this mesh; play/pause only works once the screen is expanded.
   const focused = useScreenFocus().focused?.id === id;
@@ -151,7 +152,8 @@ export default function ScreenMusic({
       clock.elapsedTime,
       playing,
       audio?.currentTime ?? 0,
-      audio?.duration ?? NaN
+      audio?.duration ?? NaN,
+      track.title
     );
     texture.needsUpdate = true;
   });

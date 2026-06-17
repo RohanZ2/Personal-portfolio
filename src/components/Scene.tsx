@@ -10,6 +10,7 @@ import VinylPlayer from './VinylPlayer';
 import IbmKeyboard from './IbmKeyboard';
 import CasioKeyboard from './CasioKeyboard';
 import { MusicProvider } from './MusicContext';
+import MusicPlaylist from './MusicPlaylist';
 import { unfocusScreen, useScreenFocus } from './screenFocusStore';
 import { NEON, glow } from './screenTheme';
 
@@ -221,6 +222,7 @@ export default function Scene() {
       </Canvas>
       <ExpandHint />
       <FocusOverlay />
+      <MusicPlaylist />
     </div>
   );
 }

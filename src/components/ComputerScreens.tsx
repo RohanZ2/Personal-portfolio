@@ -9,7 +9,6 @@ import ScreenPortfolio from './ScreenPortfolio';
 import ScreenHotspot from './ScreenHotspot';
 import ScreenBootCover from './ScreenBootCover';
 import { ScreenId } from './screenFocusStore';
-import { Const } from 'three/tsl';
 
 // The imaginary wall sits on this Z plane. The back of the monitor bank is
 // flush against it, so a visible wall mesh can later be dropped in at the
