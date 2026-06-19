@@ -86,7 +86,14 @@ function syncPlayback() {
 // Created once by MusicProvider on mount. Kept module-level so the store's
 // actions can reach it without prop-drilling.
 function createAudio(): () => void {
-  const a = new Audio(tracks[snapshot.index].src);
+  // Queue a random track on load. Done here (client-only, on mount) rather than
+  // in the module-level snapshot so it can't cause an SSR/hydration mismatch.
+  const startIndex = Math.floor(Math.random() * tracks.length);
+  if (startIndex !== snapshot.index) {
+    set({ index: startIndex, track: tracks[startIndex], currentTime: 0, duration: NaN });
+  }
+
+  const a = new Audio(tracks[startIndex].src);
   audio = a;
 
   const onTime = () => set({ currentTime: a.currentTime });

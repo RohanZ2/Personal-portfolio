@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { ScreenRect } from './screenRect';
 import { ScreenId, useScreenFocus } from './screenFocusStore';
-import { BASE, NEON, NEON_CYCLE, glow } from './screenTheme';
+import { BASE, NEON, NEON_CYCLE, glow, accentFor } from './screenTheme';
 import { useMusic } from './MusicContext';
 import ScreenShell from './ScreenShell';
 import { ScreenHeader, Panel } from './screenUI';
@@ -55,7 +55,9 @@ function MusicPage({ id }: { id: ScreenId }) {
   };
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-  const statusColor = playing ? NEON.pink : NEON.red;
+  // Two random accents for this load — one per panel — like the other screens.
+  const trackAccent = accentFor(0);
+  const transportAccent = accentFor(1);
 
   return (
     <div className="flex h-full flex-col p-6">
@@ -67,10 +69,10 @@ function MusicPage({ id }: { id: ScreenId }) {
 
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto pr-2">
         {/* Current track card */}
-        <Panel label="// TRACK" accent={statusColor}>
+        <Panel label="// TRACK" accent={trackAccent}>
           <div
             className="text-2xl font-bold leading-tight"
-            style={{ color: NEON.yellow, textShadow: glow(NEON.yellow, 12) }}
+            style={{ color: trackAccent, textShadow: glow(trackAccent, 12) }}
           >
             {track.title}
           </div>
@@ -81,7 +83,7 @@ function MusicPage({ id }: { id: ScreenId }) {
         </Panel>
 
         {/* Transport + seek card */}
-        <Panel label="// TRANSPORT" accent={NEON.green}>
+        <Panel label="// TRANSPORT" accent={transportAccent}>
           <div
             ref={barRef}
             onClick={focused ? onSeek : undefined}
@@ -90,7 +92,7 @@ function MusicPage({ id }: { id: ScreenId }) {
           >
             <div
               className="h-full"
-              style={{ width: `${progress}%`, background: NEON.green, boxShadow: glow(NEON.green, 8) }}
+              style={{ width: `${progress}%`, background: transportAccent, boxShadow: glow(transportAccent, 8) }}
             />
           </div>
           <div className="flex justify-between text-[10px]" style={{ color: BASE.dim }}>
@@ -98,9 +100,10 @@ function MusicPage({ id }: { id: ScreenId }) {
             <span>{formatTime(duration)}</span>
           </div>
           <div className="mt-1 flex items-center justify-center gap-3">
-            <TransportButton label="◄◄" onClick={prev} accent={NEON.cyan} />
-            <TransportButton label={playing ? '❚❚' : '►'} onClick={toggle} accent={NEON.pink} big />
-            <TransportButton label="►►" onClick={next} accent={NEON.cyan} />
+            <TransportButton label="◄◄" onClick={prev} accent={transportAccent} />
+            {/* Play/pause keeps its semantic colour: pink = playing, red = paused. */}
+            <TransportButton label={playing ? '❚❚' : '►'} onClick={toggle} accent={playing ? NEON.pink : NEON.red} big />
+            <TransportButton label="►►" onClick={next} accent={transportAccent} />
           </div>
         </Panel>
       </div>

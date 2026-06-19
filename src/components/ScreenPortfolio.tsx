@@ -2,7 +2,7 @@
 
 import { ScreenRect } from './screenRect';
 import { ScreenId } from './screenFocusStore';
-import { BASE, NEON, NEON_CYCLE, glow } from './screenTheme';
+import { BASE, glow, accentFor } from './screenTheme';
 import { bio, projects, contacts, Project } from '../data/portfolio';
 import ScreenShell from './ScreenShell';
 import { ScreenHeader, Panel } from './screenUI';
@@ -18,7 +18,7 @@ function AboutPage() {
       />
 
       <div className="flex-1 overflow-y-auto pr-2">
-        <Panel label="// PROFILE" accent={NEON.pink}>
+        <Panel label="// PROFILE" accent={accentFor(0)}>
           {bio.map((line) => (
             <p
               key={line.slice(0, 16)}
@@ -46,7 +46,7 @@ function ContactPage() {
       {/* 2-column grid of contact cards, same frame as the project cards. */}
       <div className="grid flex-1 grid-cols-2 gap-3 overflow-y-auto pr-2">
         {contacts.map((c, i) => {
-          const accent = NEON_CYCLE[i % NEON_CYCLE.length];
+          const accent = accentFor(i);
           return (
             <a
               key={c.label}
@@ -216,7 +216,7 @@ function ProjectsPage() {
         {projects.map((p, pi) => (
           // Each card keyed to one neon so its title, badge, and tags share a
           // color — keeps the grid from turning to mush.
-          <ProjectCard key={p.title} p={p} accent={NEON_CYCLE[pi % NEON_CYCLE.length]} />
+          <ProjectCard key={p.title} p={p} accent={accentFor(pi)} />
         ))}
       </div>
     </div>

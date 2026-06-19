@@ -34,3 +34,25 @@ export const NEON_CYCLE = [
 
 // CSS text-shadow string for an HTML neon glow (used in inline styles).
 export const glow = (color: string, size = 10) => `0 0 ${size}px ${color}`;
+
+// One shuffled copy of NEON_CYCLE, fixed for the lifetime of the page load.
+// Cards/panels read their accent from this in order (index % length), so the
+// palette is randomized fresh on every refresh but stays balanced — adjacent
+// cards rarely repeat — and stable while you navigate around within a session.
+// Computed lazily on first read so it only runs in the browser.
+let shuffled: string[] | null = null;
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** The neon accent for the card at position `i` (wraps the shuffled cycle). */
+export function accentFor(i: number): string {
+  if (!shuffled) shuffled = shuffle(NEON_CYCLE);
+  return shuffled[i % shuffled.length];
+}
