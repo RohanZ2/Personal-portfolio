@@ -1,91 +1,11 @@
 'use client';
 
-import { Html } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
 import { ScreenRect } from './screenRect';
-import { ScreenId, useScreenFocus } from './screenFocusStore';
+import { ScreenId } from './screenFocusStore';
 import { BASE, NEON, NEON_CYCLE, glow } from './screenTheme';
-import { useIntroDone } from './introSequence';
 import { bio, projects, contacts, Project } from '../data/portfolio';
-
-// CSS pixel width of the embedded UI; height follows the glass aspect.
-const DIV_W = 720;
-// drei <Html transform> renders 40 CSS px per world unit at scale 1
-// (calibrated against the rendered scene). scale is chosen so the div
-// exactly covers the monitor glass.
-const PX_PER_UNIT = 40;
-
-// Shared header used by every portfolio screen so About / Projects / Contact
-// read as one OS: small neon eyebrow, big title, and a sub-row with a count on
-// the left and an optional action link on the right.
-function ScreenHeader({
-  eyebrow,
-  title,
-  subLeft,
-  action,
-}: {
-  eyebrow: string;
-  title: string;
-  subLeft: string;
-  action?: { label: string; href: string };
-}) {
-  return (
-    <>
-      <div
-        className="text-[11px] tracking-widest"
-        style={{ color: NEON.pink, textShadow: glow(NEON.pink, 6) }}
-      >
-        {eyebrow}
-      </div>
-      <h1
-        className="text-3xl font-bold"
-        style={{ color: NEON.yellow, textShadow: glow(NEON.yellow, 14) }}
-      >
-        {title}
-      </h1>
-      <div className="mb-3 mt-1 flex items-center justify-between">
-        <span className="text-[11px] tracking-widest" style={{ color: BASE.dim }}>
-          {subLeft}
-        </span>
-        {action && (
-          <a
-            href={action.href}
-            target="_blank"
-            rel="noreferrer"
-            className="border px-2 py-0.5 text-[10px] font-bold tracking-widest"
-            style={{ borderColor: NEON.cyan, color: NEON.cyan, textShadow: glow(NEON.cyan, 6) }}
-          >
-            {action.label}
-          </a>
-        )}
-      </div>
-    </>
-  );
-}
-
-// A bordered panel with a small neon eyebrow label — the recurring "card" used
-// across About and Contact, matching the Projects card frame.
-function Panel({
-  label,
-  accent,
-  children,
-}: {
-  label: string;
-  accent: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="flex flex-col gap-2 border p-3"
-      style={{ borderColor: BASE.line, background: '#00000055' }}
-    >
-      <div className="text-[10px] tracking-widest" style={{ color: accent }}>
-        {label}
-      </div>
-      {children}
-    </div>
-  );
-}
+import ScreenShell from './ScreenShell';
+import { ScreenHeader, Panel } from './screenUI';
 
 function AboutPage() {
   return (
@@ -312,69 +232,15 @@ export default function ScreenPortfolio({
   rect: ScreenRect;
   page: 'about' | 'projects' | 'contact';
 }) {
-  const divH = Math.round(DIV_W * (rect.height / rect.width));
-  const scale = (rect.width * PX_PER_UNIT) / DIV_W;
-
-  // Until this screen is expanded, the HTML overlay must be click-through:
-  // it sits on top of the canvas in the DOM, so if it swallowed pointer
-  // events the camera rig and the expand hotspots would never see them
-  // (this is what caused the look-around jitter near the top screens).
-  const focused = useScreenFocus().focused?.id === id;
-
-  // <Html transform> bakes its CSS matrix3d from the canvas's measured size on
-  // the frame it mounts. On Vercel the bundle hydrates before layout settles,
-  // so the first measurement can be a stale/zero-sized rect — which pins the
-  // content off the glass (down-left) and never recovers. Keying the <Html>
-  // on the live canvas size forces a clean remount once the size is known and
-  // again on any resize, so the transform is always computed against a real
-  // rect. (Locally this never triggered because everything loads instantly.)
-  const { width: cw, height: ch } = useThree((s) => s.size);
-
-  // Hide this DOM content until the boot intro finishes. The intro is drawn by
-  // a WebGL boot-cover in front of the glass, but DOM <Html> always stacks on
-  // top of the canvas — so if the content rendered during boot it would show
-  // straight through the cover. Gating it here lets the cover play, then the
-  // content fades in. (Skip the fade if the intro is already done, e.g. on a
-  // hot reload, so it doesn't re-animate.)
-  const introDone = useIntroDone();
-
   return (
-    <group position={rect.center}>
-      <Html
-        key={`${Math.round(cw)}x${Math.round(ch)}`}
-        transform
-        scale={scale}
-        zIndexRange={[40, 0]}
-        pointerEvents={focused ? 'auto' : 'none'}
-        style={{ width: DIV_W, height: divH }}
-        className="select-none overflow-hidden font-mono"
-      >
-        <div
-          className="relative h-full w-full"
-          style={{
-            background: `radial-gradient(ellipse at center, ${BASE.panel} 0%, ${BASE.black} 100%)`,
-            opacity: introDone ? 1 : 0,
-            transition: 'opacity 0.35s ease-in',
-          }}
-        >
-          {page === 'about' ? (
-            <AboutPage />
-          ) : page === 'contact' ? (
-            <ContactPage />
-          ) : (
-            <ProjectsPage />
-          )}
-          {/* scanlines */}
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 50%)',
-              backgroundSize: '100% 4px',
-            }}
-          />
-        </div>
-      </Html>
-    </group>
+    <ScreenShell id={id} rect={rect}>
+      {page === 'about' ? (
+        <AboutPage />
+      ) : page === 'contact' ? (
+        <ContactPage />
+      ) : (
+        <ProjectsPage />
+      )}
+    </ScreenShell>
   );
 }

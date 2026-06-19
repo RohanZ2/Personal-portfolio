@@ -110,13 +110,13 @@ export default function ComputerScreens() {
           <ScreenPortfolio id="topRight" rect={screens.topRight} page="projects" />
           <ScreenPortfolio id="bottomLeft" rect={screens.bottomLeft} page="contact" />
           <ScreenMusic id="bottomRight" rect={screens.bottomRight} />
-          {/* The three <Html> (DOM) screens can't draw the canvas boot intro
-              themselves. A boot-cover plays the CRT power-on over each, then
-              removes itself to reveal the content. The music screen (canvas)
-              runs the intro inline. */}
+          {/* All four screens are now <Html> (DOM) and can't draw the canvas
+              boot intro themselves. A boot-cover plays the CRT power-on over
+              each, then removes itself to reveal the content. */}
           <ScreenBootCover rect={screens.topLeft} />
           <ScreenBootCover rect={screens.topRight} />
           <ScreenBootCover rect={screens.bottomLeft} />
+          <ScreenBootCover rect={screens.bottomRight} />
           {(Object.keys(screens) as ScreenId[]).map((id) => (
             <ScreenHotspot key={id} id={id} rect={screens[id]} />
           ))}

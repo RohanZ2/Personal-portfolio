@@ -11,3 +11,13 @@ body {
   overflow: hidden;
   background-color: #050807;
 }
+
+/* Bouncing bars for the music screen's CSS equalizer. */
+@keyframes eq {
+  from {
+    height: 15%;
+  }
+  to {
+    height: 100%;
+  }
+}

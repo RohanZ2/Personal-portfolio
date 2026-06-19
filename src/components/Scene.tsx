@@ -9,6 +9,7 @@ import Table from './Table';
 import VinylPlayer from './VinylPlayer';
 import IbmKeyboard from './IbmKeyboard';
 import CasioKeyboard from './CasioKeyboard';
+import DeskProp from './DeskProp';
 import { MusicProvider } from './MusicContext';
 import MusicPlaylist from './MusicPlaylist';
 import { unfocusScreen, useScreenFocus } from './screenFocusStore';
@@ -213,9 +214,13 @@ export default function Scene() {
           <Suspense fallback={null}>
             <ComputerScreens />
             <Table />
-            <VinylPlayer />
-            <IbmKeyboard />
-            <CasioKeyboard />
+            {/* Desk props fade out while a screen is expanded so they don't
+                poke into the bottom of the frame when zoomed in. */}
+            <DeskProp>
+              <VinylPlayer />
+              <IbmKeyboard />
+              <CasioKeyboard />
+            </DeskProp>
           </Suspense>
         </MusicProvider>
         <CameraRig />
