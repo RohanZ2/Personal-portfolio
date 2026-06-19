@@ -1,7 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import type { ScreenRect } from './ScreenHello';
+import type { ScreenRect } from './screenRect';
 
 export type ScreenId = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 

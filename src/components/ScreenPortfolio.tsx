@@ -2,11 +2,11 @@
 
 import { Html } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
-import { ScreenRect } from './ScreenHello';
+import { ScreenRect } from './screenRect';
 import { ScreenId, useScreenFocus } from './screenFocusStore';
 import { BASE, NEON, NEON_CYCLE, glow } from './screenTheme';
 import { useIntroDone } from './introSequence';
-import { bio, projects, skills, Project } from '../data/portfolio';
+import { bio, projects, contacts, Project } from '../data/portfolio';
 
 // CSS pixel width of the embedded UI; height follows the glass aspect.
 const DIV_W = 720;
@@ -15,60 +15,154 @@ const DIV_W = 720;
 // exactly covers the monitor glass.
 const PX_PER_UNIT = 40;
 
-function AboutPage() {
+// Shared header used by every portfolio screen so About / Projects / Contact
+// read as one OS: small neon eyebrow, big title, and a sub-row with a count on
+// the left and an optional action link on the right.
+function ScreenHeader({
+  eyebrow,
+  title,
+  subLeft,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  subLeft: string;
+  action?: { label: string; href: string };
+}) {
   return (
-    <div className="flex h-full flex-col gap-3 p-6">
+    <>
       <div
         className="text-[11px] tracking-widest"
         style={{ color: NEON.pink, textShadow: glow(NEON.pink, 6) }}
       >
-        ROHAN_OS v1.0 — /ABOUT
+        {eyebrow}
       </div>
       <h1
         className="text-3xl font-bold"
         style={{ color: NEON.yellow, textShadow: glow(NEON.yellow, 14) }}
       >
-        ROHAN TEWARI
+        {title}
       </h1>
-      <div className="text-sm" style={{ color: NEON.green }}>
-        FULL STACK ENGINEER
+      <div className="mb-3 mt-1 flex items-center justify-between">
+        <span className="text-[11px] tracking-widest" style={{ color: BASE.dim }}>
+          {subLeft}
+        </span>
+        {action && (
+          <a
+            href={action.href}
+            target="_blank"
+            rel="noreferrer"
+            className="border px-2 py-0.5 text-[10px] font-bold tracking-widest"
+            style={{ borderColor: NEON.cyan, color: NEON.cyan, textShadow: glow(NEON.cyan, 6) }}
+          >
+            {action.label}
+          </a>
+        )}
       </div>
-      {bio.map((line) => (
-        <p
-          key={line.slice(0, 16)}
-          className="text-[13px] leading-snug"
-          style={{ color: BASE.text }}
-        >
-          {line}
-        </p>
-      ))}
-      <div className="mt-auto flex flex-col gap-1.5">
-        {skills.map((s, i) => {
-          // Each skill bar gets the next neon in the cycle, so the stack
-          // reads as a stripe of pink/yellow/green/cyan/red.
+    </>
+  );
+}
+
+// A bordered panel with a small neon eyebrow label — the recurring "card" used
+// across About and Contact, matching the Projects card frame.
+function Panel({
+  label,
+  accent,
+  children,
+}: {
+  label: string;
+  accent: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="flex flex-col gap-2 border p-3"
+      style={{ borderColor: BASE.line, background: '#00000055' }}
+    >
+      <div className="text-[10px] tracking-widest" style={{ color: accent }}>
+        {label}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function AboutPage() {
+  return (
+    <div className="flex h-full flex-col p-6">
+      <ScreenHeader
+        eyebrow="GEAR 1 · WHO I AM"
+        title="About Me"
+        subLeft="ROHAN TEWARI · FULL STACK ENGINEER"
+        action={{ label: '[ GITHUB → ]', href: 'https://github.com/RohanZ2' }}
+      />
+
+      <div className="flex-1 overflow-y-auto pr-2">
+        <Panel label="// PROFILE" accent={NEON.pink}>
+          {bio.map((line) => (
+            <p
+              key={line.slice(0, 16)}
+              className="text-[12px] leading-snug"
+              style={{ color: BASE.text }}
+            >
+              {line}
+            </p>
+          ))}
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+function ContactPage() {
+  return (
+    <div className="flex h-full flex-col p-6">
+      <ScreenHeader
+        eyebrow="GEAR 4 · GET IN TOUCH"
+        title="Contact Me"
+        subLeft={`${contacts.length} CHANNELS OPEN`}
+      />
+
+      {/* 2-column grid of contact cards, same frame as the project cards. */}
+      <div className="grid flex-1 grid-cols-2 gap-3 overflow-y-auto pr-2">
+        {contacts.map((c, i) => {
           const accent = NEON_CYCLE[i % NEON_CYCLE.length];
           return (
-            <div key={s.name} className="flex items-center gap-2 text-[11px]">
-              <span className="w-28 shrink-0" style={{ color: NEON.cyan }}>
-                {s.name}
-              </span>
-              <div
-                className="h-2 flex-1 border"
-                style={{ borderColor: BASE.line, background: '#00000066' }}
-              >
-                <div
-                  className="h-full"
-                  style={{
-                    width: `${s.level}%`,
-                    background: accent,
-                    boxShadow: glow(accent, 8),
-                  }}
-                />
+            <a
+              key={c.label}
+              href={c.href}
+              target={c.href.startsWith('http') ? '_blank' : undefined}
+              rel="noreferrer"
+              className="group flex flex-col gap-2 border p-4 transition-colors hover:bg-white/5"
+              style={{ borderColor: BASE.line, background: '#00000055' }}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] tracking-widest" style={{ color: BASE.dim }}>
+                  {c.spec}
+                </span>
+                <span
+                  className="border px-1.5 text-[9px] tracking-widest"
+                  style={{ color: accent, borderColor: accent }}
+                >
+                  OPEN
+                </span>
               </div>
-              <span className="w-8 text-right" style={{ color: BASE.dim }}>
-                {s.level}
-              </span>
-            </div>
+              <div
+                className="text-lg font-bold"
+                style={{ color: accent, textShadow: glow(accent, 8) }}
+              >
+                {c.label}
+              </div>
+              <div className="text-[12px] leading-snug" style={{ color: BASE.text }}>
+                {c.value}
+              </div>
+              <div
+                className="mt-auto text-[11px] font-bold tracking-widest"
+                style={{ color: accent }}
+              >
+                CONNECT →
+              </div>
+            </a>
           );
         })}
       </div>
@@ -190,33 +284,12 @@ function ProjectCard({ p, accent }: { p: Project; accent: string }) {
 function ProjectsPage() {
   return (
     <div className="flex h-full flex-col p-6">
-      {/* Header */}
-      <div
-        className="text-[11px] tracking-widest"
-        style={{ color: NEON.pink, textShadow: glow(NEON.pink, 6) }}
-      >
-        GEAR 9 · BUILT WORK
-      </div>
-      <h1
-        className="text-3xl font-bold"
-        style={{ color: NEON.yellow, textShadow: glow(NEON.yellow, 14) }}
-      >
-        Projects
-      </h1>
-      <div className="mb-3 mt-1 flex items-center justify-between">
-        <span className="text-[11px] tracking-widest" style={{ color: BASE.dim }}>
-          {projects.length} SELECTED BUILDS
-        </span>
-        <a
-          href="https://github.com"
-          target="_blank"
-          rel="noreferrer"
-          className="border px-2 py-0.5 text-[10px] font-bold tracking-widest"
-          style={{ borderColor: NEON.cyan, color: NEON.cyan, textShadow: glow(NEON.cyan, 6) }}
-        >
-          [ ALL PROJECTS ON GITHUB → ]
-        </a>
-      </div>
+      <ScreenHeader
+        eyebrow="GEAR 9 · BUILT WORK"
+        title="Projects"
+        subLeft={`${projects.length} SELECTED BUILDS`}
+        action={{ label: '[ ALL PROJECTS ON GITHUB → ]', href: 'https://github.com/RohanZ2' }}
+      />
 
       {/* 2-column card grid (scrolls vertically when the screen is expanded). */}
       <div className="grid flex-1 grid-cols-2 gap-3 overflow-y-auto pr-2">
@@ -237,7 +310,7 @@ export default function ScreenPortfolio({
 }: {
   id: ScreenId;
   rect: ScreenRect;
-  page: 'about' | 'projects';
+  page: 'about' | 'projects' | 'contact';
 }) {
   const divH = Math.round(DIV_W * (rect.height / rect.width));
   const scale = (rect.width * PX_PER_UNIT) / DIV_W;
@@ -284,7 +357,13 @@ export default function ScreenPortfolio({
             transition: 'opacity 0.35s ease-in',
           }}
         >
-          {page === 'about' ? <AboutPage /> : <ProjectsPage />}
+          {page === 'about' ? (
+            <AboutPage />
+          ) : page === 'contact' ? (
+            <ContactPage />
+          ) : (
+            <ProjectsPage />
+          )}
           {/* scanlines */}
           <div
             className="pointer-events-none absolute inset-0"

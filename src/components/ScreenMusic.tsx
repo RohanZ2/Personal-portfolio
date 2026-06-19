@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
-import { ScreenRect } from './ScreenHello';
+import { ScreenRect } from './screenRect';
 import { ScreenId, useScreenFocus } from './screenFocusStore';
 import { BASE, NEON, NEON_CYCLE } from './screenTheme';
 import { useMusic } from './MusicContext';

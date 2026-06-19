@@ -88,3 +88,43 @@ export const bio = [
   'I am a full stack software engineer specializing in building immersive, rich digital experiences. Bridging high-fidelity design with robust backend telemetry.',
   'My philosophy is built on technical excellence, rich visual micro-interactions, and modular architecture.',
 ];
+
+export interface Contact {
+  /** Channel label shown on the card, e.g. "EMAIL". */
+  label: string;
+  /** The handle / address displayed under the label. */
+  value: string;
+  /** Where the card links to (mailto:, https://, /resume.pdf). */
+  href: string;
+  /** Sequential label shown on the card, e.g. "CH-01". */
+  spec: string;
+}
+
+// Contact channels for the bottom-left screen. Update the LinkedIn URL and drop
+// a resume into /public (e.g. /Rohan_Tewari_Resume.pdf) then fix that href.
+export const contacts: Contact[] = [
+  {
+    label: 'EMAIL',
+    value: 'rohantewari2009@gmail.com',
+    href: 'mailto:rohantewari2009@gmail.com',
+    spec: 'CH-01',
+  },
+  {
+    label: 'GITHUB',
+    value: 'github.com/RohanZ2',
+    href: 'https://github.com/RohanZ2',
+    spec: 'CH-02',
+  },
+  {
+    label: 'LINKEDIN',
+    value: 'linkedin.com/in/rohan-tewari', // TODO: confirm your LinkedIn URL
+    href: 'https://www.linkedin.com/in/rohan-tewari',
+    spec: 'CH-03',
+  },
+  {
+    label: 'RESUME',
+    value: 'Download CV (PDF)',
+    href: '/Rohan_Tewari_Resume.pdf', // TODO: add this file to /public
+    spec: 'CH-04',
+  },
+];

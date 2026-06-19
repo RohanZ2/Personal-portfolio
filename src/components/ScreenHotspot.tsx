@@ -1,7 +1,7 @@
 'use client';
 
 import { ThreeEvent } from '@react-three/fiber';
-import { ScreenRect } from './ScreenHello';
+import { ScreenRect } from './screenRect';
 import {
   ScreenId,
   focusScreen,

@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import ScreenHello, { ScreenRect } from './ScreenHello';
+import { ScreenRect } from './screenRect';
 import ScreenMusic from './ScreenMusic';
 import ScreenPortfolio from './ScreenPortfolio';
 import ScreenHotspot from './ScreenHotspot';
@@ -108,14 +108,15 @@ export default function ComputerScreens() {
         <>
           <ScreenPortfolio id="topLeft" rect={screens.topLeft} page="about" />
           <ScreenPortfolio id="topRight" rect={screens.topRight} page="projects" />
-          <ScreenHello rect={screens.bottomLeft} />
+          <ScreenPortfolio id="bottomLeft" rect={screens.bottomLeft} page="contact" />
           <ScreenMusic id="bottomRight" rect={screens.bottomRight} />
-          {/* The two top screens are drei <Html> (DOM), so they can't draw the
-              canvas boot intro themselves. A boot-cover plays the CRT power-on
-              over each, then removes itself to reveal the content. The bottom
-              two canvas screens run the intro inline. */}
+          {/* The three <Html> (DOM) screens can't draw the canvas boot intro
+              themselves. A boot-cover plays the CRT power-on over each, then
+              removes itself to reveal the content. The music screen (canvas)
+              runs the intro inline. */}
           <ScreenBootCover rect={screens.topLeft} />
           <ScreenBootCover rect={screens.topRight} />
+          <ScreenBootCover rect={screens.bottomLeft} />
           {(Object.keys(screens) as ScreenId[]).map((id) => (
             <ScreenHotspot key={id} id={id} rect={screens[id]} />
           ))}

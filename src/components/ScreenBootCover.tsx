@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { ScreenRect } from './ScreenHello';
+import { ScreenRect } from './screenRect';
 import { drawIntro } from './drawIntro';
 import { introElapsed, markIntroDone } from './introSequence';
 

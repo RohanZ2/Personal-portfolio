@@ -8,3 +8,8 @@ node_modules/
 # GLB backups (regenerate via gltf-transform) and build info
 .glb-originals/
 tsconfig.tsbuildinfo
+
+# Claude Code / Anthropic tooling
+.claude/
+.claude.json
+CLAUDE.md
