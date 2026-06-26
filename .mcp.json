@@ -3,7 +3,7 @@
     "genouk-memory": {
       "command": "node",
       "args": [
-        "c:\\Users\\Rohan\\.vscode\\extensions\\genouk-dev.genouk-1.0.1\\dist\\mcpServer.js"
+        "c:\\Users\\Rohan\\.vscode\\extensions\\genouk-dev.genouk-1.0.2\\dist\\mcpServer.js"
       ],
       "env": {
         "GENOUK_REPO": "c:\\Users\\Rohan\\Documents\\Personal-portfolio"

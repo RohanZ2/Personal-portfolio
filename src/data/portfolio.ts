@@ -100,8 +100,7 @@ export interface Contact {
   spec: string;
 }
 
-// Contact channels for the bottom-left screen. Update the LinkedIn URL and drop
-// a resume into /public (e.g. /Rohan_Tewari_Resume.pdf) then fix that href.
+// Contact channels for the bottom-left screen.
 export const contacts: Contact[] = [
   {
     label: 'EMAIL',
@@ -117,14 +116,14 @@ export const contacts: Contact[] = [
   },
   {
     label: 'LINKEDIN',
-    value: 'linkedin.com/in/rohan-tewari', // TODO: confirm your LinkedIn URL
-    href: 'https://www.linkedin.com/in/rohan-tewari',
+    value: 'linkedin.com/in/rohan-tewari',
+    href: 'https://www.linkedin.com/in/rohan-tewari-a80b29370/',
     spec: 'CH-03',
   },
   {
     label: 'RESUME',
     value: 'Download CV (PDF)',
-    href: '/Rohan_Tewari_Resume.pdf', // TODO: add this file to /public
+    href: '/Rohan_Tewari_Resume.pdf',
     spec: 'CH-04',
   },
 ];
