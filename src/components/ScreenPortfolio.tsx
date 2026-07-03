@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ScreenRect } from './screenRect';
 import { ScreenId } from './screenFocusStore';
 import { BASE, glow, accentFor } from './screenTheme';
@@ -34,7 +35,165 @@ function AboutPage() {
   );
 }
 
+// Status of a contact-form submission, drives the SEND button label/colour.
+type SendState = 'idle' | 'sending' | 'sent' | 'error';
+
+// The inline email composer that the EMAIL card expands into. Posts name /
+// email / message to our own /api/contact route, which attaches the private
+// Web3Forms key server-side and forwards the message to Rohan's inbox. The key
+// never reaches the browser, so nothing sensitive ships in the client bundle.
+function EmailForm({ accent, onClose }: { accent: string; onClose: () => void }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [state, setState] = useState<SendState>('idle');
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (state === 'sending') return;
+
+    setState('sending');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setState('sent');
+        setName('');
+        setEmail('');
+        setMessage('');
+      } else {
+        setState('error');
+      }
+    } catch {
+      setState('error');
+    }
+  }
+
+  const sendLabel =
+    state === 'sending'
+      ? '[ SENDING… ]'
+      : state === 'sent'
+      ? '[ ✓ SENT ]'
+      : state === 'error'
+      ? '[ ✕ TRY AGAIN ]'
+      : '[ SEND MESSAGE ]';
+
+  const inputStyle = {
+    borderColor: BASE.line,
+    background: '#00000055',
+    color: BASE.text,
+  } as const;
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-y-auto pr-2">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <p className="text-[12px] leading-snug" style={{ color: BASE.dim }}>
+          Want to work together, or just talk cars and code? Drop a message — it
+          lands straight in my inbox — or use any channel below.
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="shrink-0 border px-2 py-1 text-[10px] font-bold tracking-widest transition-colors hover:bg-white/5"
+          style={{ color: accent, borderColor: accent }}
+        >
+          [ ✕ ] CLOSE
+        </button>
+      </div>
+
+      <div className="mb-3 grid grid-cols-2 gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] tracking-widest" style={{ color: accent }}>
+            NAME
+          </span>
+          <input
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name"
+            className="border px-3 py-2 text-[12px] outline-none focus:bg-white/5"
+            style={inputStyle}
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] tracking-widest" style={{ color: accent }}>
+            EMAIL
+          </span>
+          <input
+            required
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            className="border px-3 py-2 text-[12px] outline-none focus:bg-white/5"
+            style={inputStyle}
+          />
+        </label>
+      </div>
+
+      <label className="mb-4 flex flex-1 flex-col gap-1">
+        <span className="text-[10px] tracking-widest" style={{ color: accent }}>
+          MESSAGE
+        </span>
+        <textarea
+          required
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="What's on your mind?"
+          rows={5}
+          className="min-h-[120px] flex-1 resize-none border px-3 py-2 text-[12px] outline-none focus:bg-white/5"
+          style={inputStyle}
+        />
+      </label>
+
+      <button
+        type="submit"
+        disabled={state === 'sending'}
+        className="self-start border px-4 py-2 text-[11px] font-bold tracking-widest transition-colors hover:bg-white/5 disabled:opacity-60"
+        style={{ color: accent, borderColor: accent, textShadow: glow(accent, 6) }}
+      >
+        {sendLabel}
+      </button>
+
+      {state === 'sent' && (
+        <p className="mt-3 text-[11px]" style={{ color: BASE.text }}>
+          Thanks — your message is on its way. I&apos;ll get back to you soon.
+        </p>
+      )}
+      {state === 'error' && (
+        <p className="mt-3 text-[11px]" style={{ color: BASE.text }}>
+          Something went wrong sending that. You can also email me directly at
+          rohantewari2009@gmail.com.
+        </p>
+      )}
+    </form>
+  );
+}
+
 function ContactPage() {
+  // When set, the EMAIL card is expanded into the inline composer.
+  const [composing, setComposing] = useState(false);
+
+  // The EMAIL card always sits first, so it keeps accent index 0.
+  const emailAccent = accentFor(0);
+
+  if (composing) {
+    return (
+      <div className="flex h-full flex-col p-6">
+        <ScreenHeader
+          eyebrow="GEAR 4 · GET IN TOUCH"
+          title="Contact"
+          subLeft="COMPOSE MESSAGE"
+        />
+        <EmailForm accent={emailAccent} onClose={() => setComposing(false)} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full flex-col p-6">
       <ScreenHeader
@@ -47,15 +206,10 @@ function ContactPage() {
       <div className="grid flex-1 grid-cols-2 gap-3 overflow-y-auto pr-2">
         {contacts.map((c, i) => {
           const accent = accentFor(i);
-          return (
-            <a
-              key={c.label}
-              href={c.href}
-              target={c.href.startsWith('http') ? '_blank' : undefined}
-              rel="noreferrer"
-              className="group flex flex-col gap-2 border p-4 transition-colors hover:bg-white/5"
-              style={{ borderColor: BASE.line, background: '#00000055' }}
-            >
+          const isEmail = c.label === 'EMAIL';
+
+          const inner = (
+            <>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] tracking-widest" style={{ color: BASE.dim }}>
                   {c.spec}
@@ -80,8 +234,40 @@ function ContactPage() {
                 className="mt-auto text-[11px] font-bold tracking-widest"
                 style={{ color: accent }}
               >
-                CONNECT →
+                {isEmail ? 'WRITE A MESSAGE →' : 'CONNECT →'}
               </div>
+            </>
+          );
+
+          const cardClass =
+            'group flex flex-col gap-2 border p-4 text-left transition-colors hover:bg-white/5';
+          const cardStyle = { borderColor: BASE.line, background: '#00000055' };
+
+          // The EMAIL card opens the inline composer instead of navigating.
+          if (isEmail) {
+            return (
+              <button
+                key={c.label}
+                type="button"
+                onClick={() => setComposing(true)}
+                className={cardClass}
+                style={cardStyle}
+              >
+                {inner}
+              </button>
+            );
+          }
+
+          return (
+            <a
+              key={c.label}
+              href={c.href}
+              target={c.href.startsWith('http') ? '_blank' : undefined}
+              rel="noreferrer"
+              className={cardClass}
+              style={cardStyle}
+            >
+              {inner}
             </a>
           );
         })}
