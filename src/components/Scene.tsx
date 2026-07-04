@@ -193,7 +193,14 @@ export default function Scene() {
         // stops the prod-only race where the HTML monitor content projected
         // against a not-yet-settled canvas rect and floated off the glass.
         resize={{ scroll: false, debounce: 0 }}
-        onPointerMissed={unfocusScreen}
+        // Fires when a click doesn't hit a 3D mesh. But drei's <Html> screen
+        // content (the About/Contact/Music DOM, incl. the contact form inputs)
+        // isn't a mesh either, so a click on a form field also counts as a
+        // "miss" and would kick you out of expand mode. Only unfocus when the
+        // click actually landed on the empty canvas, not on the DOM overlay.
+        onPointerMissed={(e) => {
+          if ((e.target as HTMLElement)?.tagName === 'CANVAS') unfocusScreen();
+        }}
       >
         <color attach="background" args={['#050807']} />
         <ambientLight intensity={1.1} />

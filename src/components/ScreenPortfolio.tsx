@@ -39,9 +39,12 @@ function AboutPage() {
 type SendState = 'idle' | 'sending' | 'sent' | 'error';
 
 // The inline email composer that the EMAIL card expands into. Posts name /
-// email / message to our own /api/contact route, which attaches the private
-// Web3Forms key server-side and forwards the message to Rohan's inbox. The key
-// never reaches the browser, so nothing sensitive ships in the client bundle.
+// email / message straight to the Web3Forms API from the browser, which
+// forwards the message to Rohan's inbox. This is deliberately a client-side
+// call: Web3Forms only accepts server-side submissions on its paid plan, so on
+// the free tier the request must originate in the browser. The access key is
+// public-by-design (its only power is submitting to this one inbox), so it's
+// safe to ship — read from NEXT_PUBLIC_WEB3FORMS_KEY so it isn't hardcoded.
 function EmailForm({ accent, onClose }: { accent: string; onClose: () => void }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -54,10 +57,17 @@ function EmailForm({ accent, onClose }: { accent: string; onClose: () => void })
 
     setState('sending');
     try {
-      const res = await fetch('/api/contact', {
+      const res = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, message }),
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: process.env.NEXT_PUBLIC_WEB3FORMS_KEY,
+          subject: `Portfolio message from ${name}`,
+          from_name: name,
+          name,
+          email,
+          message,
+        }),
       });
       const data = await res.json();
       if (data.success) {
