@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScreenRect } from './screenRect';
 import { ScreenId } from './screenFocusStore';
 import { BASE, glow, accentFor } from './screenTheme';
@@ -8,13 +8,38 @@ import { bio, projects, contacts, Project } from '../data/portfolio';
 import ScreenShell from './ScreenShell';
 import { ScreenHeader, Panel } from './screenUI';
 
+// Lets the mouse wheel scroll a drei <Html> overlay. The screen content sits on
+// top of the 3D canvas, so by default a wheel gesture bubbles to the canvas /
+// camera rig instead of scrolling the div — forcing you to drag the scrollbar.
+// This attaches a non-passive wheel listener (passive can't preventDefault) that
+// scrolls the element itself and stops the event from reaching the scene. Only
+// swallows the wheel while there's actually somewhere to scroll, so gestures at
+// the top/bottom edge still pass through to the room.
+function useWheelScroll<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      const canScroll = el.scrollHeight > el.clientHeight;
+      if (!canScroll) return;
+      el.scrollTop += e.deltaY;
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+  return ref;
+}
+
 function AboutPage() {
   return (
     <div className="flex h-full flex-col p-6">
       <ScreenHeader
         eyebrow="GEAR 1 · WHO I AM"
         title="About Me"
-        subLeft="ROHAN TEWARI · FULL STACK ENGINEER"
+        subLeft="ROHAN TEWARI · STUDENT · BUILDER"
         action={{ label: '[ GITHUB → ]', href: 'https://github.com/RohanZ2' }}
       />
 
@@ -102,8 +127,8 @@ function EmailForm({ accent, onClose }: { accent: string; onClose: () => void })
     <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-y-auto pr-2">
       <div className="mb-4 flex items-start justify-between gap-4">
         <p className="text-[12px] leading-snug" style={{ color: BASE.dim }}>
-          Want to work together, or just talk cars and code? Drop a message — it
-          lands straight in my inbox — or use any channel below.
+          Want to work together, or just talk cars and code? Drop a message, it
+          lands straight in my inbox! Or use any channel below.
         </p>
         <button
           type="button"
@@ -398,6 +423,7 @@ function ProjectCard({ p, accent }: { p: Project; accent: string }) {
 }
 
 function ProjectsPage() {
+  const scrollRef = useWheelScroll<HTMLDivElement>();
   return (
     <div className="flex h-full flex-col p-6">
       <ScreenHeader
@@ -408,7 +434,7 @@ function ProjectsPage() {
       />
 
       {/* 2-column card grid (scrolls vertically when the screen is expanded). */}
-      <div className="grid flex-1 grid-cols-2 gap-3 overflow-y-auto pr-2">
+      <div ref={scrollRef} className="grid flex-1 grid-cols-2 gap-3 overflow-y-auto pr-2">
         {projects.map((p, pi) => (
           // Each card keyed to one neon so its title, badge, and tags share a
           // color — keeps the grid from turning to mush.

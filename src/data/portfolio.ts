@@ -14,9 +14,7 @@ export interface Project {
   image?: string;
 }
 
-// NOTE: descriptions, tech, links, status and images below are placeholders —
-// edit these with the real details. Drop screenshots into /public/projects/
-// and set the matching `image` field to replace the placeholder panels.
+
 export const projects: Project[] = [
   {
     title: 'SliceIQ',
@@ -85,8 +83,10 @@ export const skills = [
 ];
 
 export const bio = [
-  'I am a full stack software engineer specializing in building immersive, rich digital experiences. Bridging high-fidelity design with robust backend telemetry.',
-  'My philosophy is built on technical excellence, rich visual micro-interactions, and modular architecture.',
+  "Hey, I'm Rohan, a grade 12 student in Kitchener, Ontario, and I like building things. I got hooked the first time a project I made with a friend actually worked, and I've been chasing that feeling ever since. Through web apps, games, and whatever a hackathon weekend can produce.",
+  "Right now, most of my building happens at hackathons and on late-night side projects, like the 3D retro room you're looking at. I work mostly with JavaScript, React, and Next.js, and I gravitate toward projects you can actually see and click, where the code turns into something real in front of you.",
+  "When I'm not at a keyboard, I'm probably at the pool. I'm a certified National Lifeguard and swim instructor at Forest Heights Pool, and teaching turned out to be my other favourite thing to do, I've taught kids to swim, helped kids write their first lines of code at an OpenText coding event, and volunteered at Hack the North two years in a row. Watching someone go from confused to confident never gets old, in the water or in an editor.",
+  "Outside of all that, you'll find me playing basketball, biking around the city, or digging for new music, some of which ends up on the vinyl player sitting on this desk.",
 ];
 
 export interface Contact {
